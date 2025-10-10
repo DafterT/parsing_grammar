@@ -1,0 +1,38 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "var2",
+      "camelcase": "Var2",
+      "title": "Var2",
+      "scope": "source.var2",
+      "file-types": [
+        "var2"
+      ],
+      "injection-regex": "^var2$",
+      "class-name": "TreeSitterVar2"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Парсер для 2 варианта",
+    "authors": [
+      {
+        "name": "Dafter"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/DafterT/parsing_grammar"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true,
+    "zig": false
+  }
+}
