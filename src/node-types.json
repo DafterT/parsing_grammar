@@ -1,15 +1,93 @@
 [
   {
-    "type": "source",
+    "type": "argDef",
     "named": true,
-    "root": true,
     "fields": {
+      "identifier": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
       "typeRef": {
-        "multiple": true,
+        "multiple": false,
         "required": false,
         "types": [
           {
             "type": "typeRef",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "funcSignature",
+    "named": true,
+    "fields": {
+      "identifier": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "list_argDef": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "list_argDef",
+            "named": true
+          }
+        ]
+      },
+      "typeRef": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "typeRef",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "list_argDef",
+    "named": true,
+    "fields": {
+      "argDef": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "argDef",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "source",
+    "named": true,
+    "root": true,
+    "fields": {
+      "funcSignature": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "funcSignature",
             "named": true
           }
         ]
@@ -101,7 +179,19 @@
     }
   },
   {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
     "type": ",",
+    "named": false
+  },
+  {
+    "type": ":",
     "named": false
   },
   {

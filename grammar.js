@@ -35,8 +35,32 @@ module.exports = grammar({
 
   rules: {
     source: $ => repeat(choice(
-      field('typeRef', $.typeRef),
+      field('funcSignature', $.funcSignature),
     )),
+
+    funcSignature: $ => seq(
+      field('identifier', $.identifier),
+      '(',
+      field('list_argDef', $.list_argDef),
+      ')',
+      optional(seq(
+        ':',
+        field('typeRef', $.typeRef),
+      ))
+    ),
+
+    list_argDef: $ => seq(
+      field('argDef', $.argDef),
+      repeat(seq(',', field('argDef', $.argDef)))
+    ),
+
+    argDef: $ => seq(
+      field('identifier', $.identifier),
+      optional(seq(
+        ':',
+        field('typeRef', $.typeRef)
+      ))
+    ),
 
     typeRef: $ => choice(
       field('builtin', choice(
@@ -65,8 +89,8 @@ module.exports = grammar({
       field('block', $.block_content),
       field('while', $.while_content),
       field('do', $.do_content),
-      field('break', seq(alias('break', $.break),';')),
-      field('expr', seq($.expression,';')),
+      field('break', seq(alias('break', $.break), ';')),
+      field('expr', seq($.expression, ';')),
     ),
 
     do_content: $ => seq(
@@ -75,7 +99,7 @@ module.exports = grammar({
       choice('while', 'until'),
       field('expr', $.expression),
       ';'
-    ),  
+    ),
 
     while_content: $ => seq(
       'while',
@@ -103,19 +127,20 @@ module.exports = grammar({
       field('place', $.identifier),
       field('literal', choice($.bool, $.str, $.char, $.hex, $.bits, $.dec)),
     ),
-    
+
     indexer: $ => prec(PREC.SUBSCRIPT, seq(
       field('expr', $.expression),
       seq('[', field('listExpr', $.list_expr), ']')
     )),
-    
+
     call_expression: $ => prec(PREC.CALL, seq(
       field('expr', $.expression),
       seq('(', field('listExpr', $.list_expr), ')')
     )),
 
     list_expr: $ => seq(
-      field('expr', $.expression), repeat(seq(',', field('expr', $.expression)))
+      field('expr', $.expression),
+      repeat(seq(',', field('expr', $.expression)))
     ),
 
     unary_expression: $ => prec.left(PREC.UNARY, seq(
