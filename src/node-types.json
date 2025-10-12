@@ -8,80 +8,8 @@
         "required": true,
         "types": [
           {
-            "type": "!=",
-            "named": false
-          },
-          {
-            "type": "%",
-            "named": false
-          },
-          {
-            "type": "&",
-            "named": false
-          },
-          {
-            "type": "&&",
-            "named": false
-          },
-          {
-            "type": "*",
-            "named": false
-          },
-          {
-            "type": "+",
-            "named": false
-          },
-          {
-            "type": "-",
-            "named": false
-          },
-          {
-            "type": "/",
-            "named": false
-          },
-          {
-            "type": ":=",
-            "named": false
-          },
-          {
-            "type": "<",
-            "named": false
-          },
-          {
-            "type": "<<",
-            "named": false
-          },
-          {
-            "type": "<=",
-            "named": false
-          },
-          {
-            "type": "==",
-            "named": false
-          },
-          {
-            "type": ">",
-            "named": false
-          },
-          {
-            "type": ">=",
-            "named": false
-          },
-          {
-            "type": ">>",
-            "named": false
-          },
-          {
-            "type": "^",
-            "named": false
-          },
-          {
-            "type": "|",
-            "named": false
-          },
-          {
-            "type": "||",
-            "named": false
+            "type": "bin_op",
+            "named": true
           }
         ]
       },
@@ -91,6 +19,37 @@
         "types": [
           {
             "type": "expression",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "bool",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "call_expression",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      },
+      "listExpr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "list_expr",
             "named": true
           }
         ]
@@ -111,6 +70,74 @@
           }
         ]
       },
+      "braces": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "(",
+            "named": false
+          },
+          {
+            "type": ")",
+            "named": false
+          },
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      },
+      "call": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "call_expression",
+            "named": true
+          }
+        ]
+      },
+      "indexer": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "indexer",
+            "named": true
+          }
+        ]
+      },
+      "literal": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "bits",
+            "named": true
+          },
+          {
+            "type": "bool",
+            "named": true
+          },
+          {
+            "type": "char",
+            "named": true
+          },
+          {
+            "type": "dec",
+            "named": true
+          },
+          {
+            "type": "hex",
+            "named": true
+          },
+          {
+            "type": "str",
+            "named": true
+          }
+        ]
+      },
       "place": {
         "multiple": false,
         "required": false,
@@ -127,6 +154,48 @@
         "types": [
           {
             "type": "unary_expression",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "indexer",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      },
+      "listExpr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "list_expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "list_expr",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
             "named": true
           }
         ]
@@ -164,116 +233,76 @@
           }
         ]
       },
-      "operator": {
+      "unOp": {
         "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "!",
-            "named": false
-          },
-          {
-            "type": "+",
-            "named": false
-          },
-          {
-            "type": "-",
-            "named": false
-          },
-          {
-            "type": "~",
-            "named": false
+            "type": "un_op",
+            "named": true
           }
         ]
       }
     }
   },
   {
-    "type": "!",
+    "type": "(",
     "named": false
   },
   {
-    "type": "!=",
+    "type": ")",
     "named": false
   },
   {
-    "type": "%",
+    "type": ",",
     "named": false
   },
   {
-    "type": "&",
+    "type": "[",
     "named": false
   },
   {
-    "type": "&&",
+    "type": "]",
     "named": false
   },
   {
-    "type": "*",
+    "type": "bin_op",
+    "named": true
+  },
+  {
+    "type": "bits",
+    "named": true
+  },
+  {
+    "type": "char",
+    "named": true
+  },
+  {
+    "type": "dec",
+    "named": true
+  },
+  {
+    "type": "false",
     "named": false
   },
   {
-    "type": "+",
-    "named": false
-  },
-  {
-    "type": "-",
-    "named": false
-  },
-  {
-    "type": "/",
-    "named": false
-  },
-  {
-    "type": ":=",
-    "named": false
-  },
-  {
-    "type": "<",
-    "named": false
-  },
-  {
-    "type": "<<",
-    "named": false
-  },
-  {
-    "type": "<=",
-    "named": false
-  },
-  {
-    "type": "==",
-    "named": false
-  },
-  {
-    "type": ">",
-    "named": false
-  },
-  {
-    "type": ">=",
-    "named": false
-  },
-  {
-    "type": ">>",
-    "named": false
-  },
-  {
-    "type": "^",
-    "named": false
+    "type": "hex",
+    "named": true
   },
   {
     "type": "identifier",
     "named": true
   },
   {
-    "type": "|",
+    "type": "str",
+    "named": true
+  },
+  {
+    "type": "true",
     "named": false
   },
   {
-    "type": "||",
-    "named": false
-  },
-  {
-    "type": "~",
-    "named": false
+    "type": "un_op",
+    "named": true
   }
 ]

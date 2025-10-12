@@ -39,10 +39,189 @@
         },
         {
           "type": "FIELD",
+          "name": "braces",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "("
+              },
+              {
+                "type": "SYMBOL",
+                "name": "expression"
+              },
+              {
+                "type": "STRING",
+                "value": ")"
+              }
+            ]
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "call",
+          "content": {
+            "type": "SYMBOL",
+            "name": "call_expression"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "indexer",
+          "content": {
+            "type": "SYMBOL",
+            "name": "indexer"
+          }
+        },
+        {
+          "type": "FIELD",
           "name": "place",
           "content": {
             "type": "SYMBOL",
             "name": "identifier"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "literal",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "bool"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "str"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "char"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "hex"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "bits"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "dec"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "indexer": {
+      "type": "PREC",
+      "value": 17,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "FIELD",
+            "name": "expr",
+            "content": {
+              "type": "SYMBOL",
+              "name": "expression"
+            }
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "["
+              },
+              {
+                "type": "FIELD",
+                "name": "listExpr",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "list_expr"
+                }
+              },
+              {
+                "type": "STRING",
+                "value": "]"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "call_expression": {
+      "type": "PREC",
+      "value": 15,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "FIELD",
+            "name": "expr",
+            "content": {
+              "type": "SYMBOL",
+              "name": "expression"
+            }
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "("
+              },
+              {
+                "type": "FIELD",
+                "name": "listExpr",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "list_expr"
+                }
+              },
+              {
+                "type": "STRING",
+                "value": ")"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "list_expr": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "expr",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expression"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "FIELD",
+                "name": "expr",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "expression"
+                }
+              }
+            ]
           }
         }
       ]
@@ -55,27 +234,32 @@
         "members": [
           {
             "type": "FIELD",
-            "name": "operator",
+            "name": "unOp",
             "content": {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "!"
-                },
-                {
-                  "type": "STRING",
-                  "value": "~"
-                },
-                {
-                  "type": "STRING",
-                  "value": "-"
-                },
-                {
-                  "type": "STRING",
-                  "value": "+"
-                }
-              ]
+              "type": "ALIAS",
+              "content": {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "!"
+                  },
+                  {
+                    "type": "STRING",
+                    "value": "~"
+                  },
+                  {
+                    "type": "STRING",
+                    "value": "-"
+                  },
+                  {
+                    "type": "STRING",
+                    "value": "+"
+                  }
+                ]
+              },
+              "named": true,
+              "value": "un_op"
             }
           },
           {
@@ -93,7 +277,7 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": -2,
           "content": {
             "type": "SEQ",
@@ -110,8 +294,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": ":="
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": ":="
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -126,7 +315,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 10,
           "content": {
             "type": "SEQ",
@@ -143,8 +332,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "+"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "+"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -159,7 +353,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 10,
           "content": {
             "type": "SEQ",
@@ -176,8 +370,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "-"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "-"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -192,7 +391,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 11,
           "content": {
             "type": "SEQ",
@@ -209,8 +408,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "*"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "*"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -225,7 +429,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 11,
           "content": {
             "type": "SEQ",
@@ -242,8 +446,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "/"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "/"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -258,7 +467,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 11,
           "content": {
             "type": "SEQ",
@@ -275,8 +484,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "%"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "%"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -291,7 +505,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 1,
           "content": {
             "type": "SEQ",
@@ -308,8 +522,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "||"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "||"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -324,7 +543,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 2,
           "content": {
             "type": "SEQ",
@@ -341,8 +560,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "&&"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "&&"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -357,7 +581,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 3,
           "content": {
             "type": "SEQ",
@@ -374,8 +598,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "|"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "|"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -390,7 +619,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 4,
           "content": {
             "type": "SEQ",
@@ -407,8 +636,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "^"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "^"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -423,7 +657,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 5,
           "content": {
             "type": "SEQ",
@@ -440,8 +674,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "&"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "&"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -456,7 +695,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 6,
           "content": {
             "type": "SEQ",
@@ -473,8 +712,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "=="
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "=="
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -489,7 +733,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 6,
           "content": {
             "type": "SEQ",
@@ -506,8 +750,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "!="
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "!="
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -522,7 +771,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 7,
           "content": {
             "type": "SEQ",
@@ -539,8 +788,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": ">"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": ">"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -555,7 +809,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 7,
           "content": {
             "type": "SEQ",
@@ -572,8 +826,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": ">="
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": ">="
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -588,7 +847,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 7,
           "content": {
             "type": "SEQ",
@@ -605,8 +864,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "<="
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "<="
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -621,7 +885,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 7,
           "content": {
             "type": "SEQ",
@@ -638,8 +902,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "<"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "<"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -654,7 +923,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 9,
           "content": {
             "type": "SEQ",
@@ -671,8 +940,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": "<<"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": "<<"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {
@@ -687,7 +961,7 @@
           }
         },
         {
-          "type": "PREC_LEFT",
+          "type": "PREC_RIGHT",
           "value": 9,
           "content": {
             "type": "SEQ",
@@ -704,8 +978,13 @@
                 "type": "FIELD",
                 "name": "binOp",
                 "content": {
-                  "type": "STRING",
-                  "value": ">>"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "STRING",
+                    "value": ">>"
+                  },
+                  "named": true,
+                  "value": "bin_op"
                 }
               },
               {

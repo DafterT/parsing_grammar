@@ -37,15 +37,33 @@ module.exports = grammar({
     source_file: $ => repeat(choice(
       field('expr', $.expression),
     )),
-    
+
     expression: $ => choice(
       field('unary', $.unary_expression),
       field('binary', $.binary_expression),
+      field('braces', seq('(', $.expression, ')')),
+      field('call', $.call_expression),
+      field('indexer', $.indexer),
       field('place', $.identifier),
+      field('literal', choice($.bool, $.str, $.char, $.hex, $.bits, $.dec)),
+    ),
+    
+    indexer: $ => prec(PREC.SUBSCRIPT, seq(
+      field('expr', $.expression),
+      seq('[', field('listExpr', $.list_expr), ']')
+    )),
+    
+    call_expression: $ => prec(PREC.CALL, seq(
+      field('expr', $.expression),
+      seq('(', field('listExpr', $.list_expr), ')')
+    )),
+
+    list_expr: $ => seq(
+      field('expr', $.expression), repeat(seq(',', field('expr', $.expression)))
     ),
 
     unary_expression: $ => prec.left(PREC.UNARY, seq(
-      field('operator', choice('!', '~', '-', '+')),
+      field('unOp', alias(choice('!', '~', '-', '+'), $.un_op)),
       field('expr', $.expression),
     )),
 
@@ -73,10 +91,10 @@ module.exports = grammar({
       ];
 
       return choice(...table.map(([operator, precedence]) => {
-        return prec.left(precedence, seq(
+        return prec.right(precedence, seq(
           field('expr', $.expression),
           // @ts-ignore
-          field('binOp', operator),
+          field('binOp', alias(operator, $.bin_op)),
           field('expr', $.expression),
         ));
       }));
@@ -93,14 +111,5 @@ module.exports = grammar({
     _true: _ => token('true'),
     _false: _ => token('false'),
     bool: $ => choice($._true, $._false),
-
-    /*
-    list: $ => seq(
-      '(',
-      $.bool,
-      repeat(seq(',', $.bool)),
-      ')'
-    ),
-    */
   }
 });
