@@ -1,40 +1,15 @@
 [
   {
-    "type": "binary_expression",
+    "type": "source",
     "named": true,
+    "root": true,
     "fields": {
-      "binOp": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "bin_op",
-            "named": true
-          }
-        ]
-      },
-      "expr": {
-        "multiple": true,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "block_content",
-    "named": true,
-    "fields": {
-      "statement": {
+      "typeRef": {
         "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "statement",
+            "type": "typeRef",
             "named": true
           }
         ]
@@ -42,124 +17,49 @@
     }
   },
   {
-    "type": "bool",
-    "named": true,
-    "fields": {}
-  },
-  {
-    "type": "call_expression",
+    "type": "typeRef",
     "named": true,
     "fields": {
-      "expr": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      },
-      "listExpr": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "list_expr",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "do_content",
-    "named": true,
-    "fields": {
-      "expr": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      },
-      "statement": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "statement",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "expression",
-    "named": true,
-    "fields": {
-      "binary": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "binary_expression",
-            "named": true
-          }
-        ]
-      },
-      "braces": {
+      "array": {
         "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "(",
+            "type": ",",
             "named": false
           },
           {
-            "type": ")",
+            "type": "[",
             "named": false
           },
           {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      },
-      "call": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "call_expression",
-            "named": true
-          }
-        ]
-      },
-      "indexer": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "indexer",
-            "named": true
-          }
-        ]
-      },
-      "literal": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "bits",
-            "named": true
+            "type": "]",
+            "named": false
           },
+          {
+            "type": "array",
+            "named": false
+          },
+          {
+            "type": "of",
+            "named": false
+          },
+          {
+            "type": "typeRef",
+            "named": true
+          }
+        ]
+      },
+      "builtin": {
+        "multiple": false,
+        "required": false,
+        "types": [
           {
             "type": "bool",
+            "named": true
+          },
+          {
+            "type": "byte",
             "named": true
           },
           {
@@ -167,20 +67,28 @@
             "named": true
           },
           {
-            "type": "dec",
+            "type": "int",
             "named": true
           },
           {
-            "type": "hex",
+            "type": "long",
             "named": true
           },
           {
-            "type": "str",
+            "type": "string",
+            "named": true
+          },
+          {
+            "type": "uint",
+            "named": true
+          },
+          {
+            "type": "ulong",
             "named": true
           }
         ]
       },
-      "place": {
+      "custom": {
         "multiple": false,
         "required": false,
         "types": [
@@ -189,244 +97,11 @@
             "named": true
           }
         ]
-      },
-      "unary": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "unary_expression",
-            "named": true
-          }
-        ]
       }
     }
-  },
-  {
-    "type": "if_statement",
-    "named": true,
-    "fields": {
-      "expr": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      },
-      "statement": {
-        "multiple": true,
-        "required": true,
-        "types": [
-          {
-            "type": "statement",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "indexer",
-    "named": true,
-    "fields": {
-      "expr": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      },
-      "listExpr": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "list_expr",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "list_expr",
-    "named": true,
-    "fields": {
-      "expr": {
-        "multiple": true,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "source_file",
-    "named": true,
-    "root": true,
-    "fields": {
-      "statement": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "statement",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "statement",
-    "named": true,
-    "fields": {
-      "block": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "block_content",
-            "named": true
-          }
-        ]
-      },
-      "break": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": ";",
-            "named": false
-          },
-          {
-            "type": "break",
-            "named": true
-          }
-        ]
-      },
-      "do": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "do_content",
-            "named": true
-          }
-        ]
-      },
-      "expr": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": ";",
-            "named": false
-          },
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      },
-      "if": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "if_statement",
-            "named": true
-          }
-        ]
-      },
-      "while": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "while_content",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "unary_expression",
-    "named": true,
-    "fields": {
-      "expr": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      },
-      "unOp": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "un_op",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "while_content",
-    "named": true,
-    "fields": {
-      "expr": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      },
-      "statement": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "statement",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "(",
-    "named": false
-  },
-  {
-    "type": ")",
-    "named": false
   },
   {
     "type": ",",
-    "named": false
-  },
-  {
-    "type": ";",
     "named": false
   },
   {
@@ -438,19 +113,15 @@
     "named": false
   },
   {
-    "type": "begin",
+    "type": "array",
     "named": false
   },
   {
-    "type": "bin_op",
+    "type": "bool",
     "named": true
   },
   {
-    "type": "bits",
-    "named": true
-  },
-  {
-    "type": "break",
+    "type": "byte",
     "named": true
   },
   {
@@ -458,63 +129,31 @@
     "named": true
   },
   {
-    "type": "dec",
-    "named": true
-  },
-  {
-    "type": "do",
-    "named": false
-  },
-  {
-    "type": "else",
-    "named": false
-  },
-  {
-    "type": "end",
-    "named": false
-  },
-  {
-    "type": "false",
-    "named": false
-  },
-  {
-    "type": "hex",
-    "named": true
-  },
-  {
     "type": "identifier",
     "named": true
   },
   {
-    "type": "if",
-    "named": false
-  },
-  {
-    "type": "repeat",
-    "named": false
-  },
-  {
-    "type": "str",
+    "type": "int",
     "named": true
   },
   {
-    "type": "then",
-    "named": false
-  },
-  {
-    "type": "true",
-    "named": false
-  },
-  {
-    "type": "un_op",
+    "type": "long",
     "named": true
   },
   {
-    "type": "until",
+    "type": "of",
     "named": false
   },
   {
-    "type": "while",
-    "named": false
+    "type": "string",
+    "named": true
+  },
+  {
+    "type": "uint",
+    "named": true
+  },
+  {
+    "type": "ulong",
+    "named": true
   }
 ]

@@ -34,9 +34,31 @@ module.exports = grammar({
   name: "var2",
 
   rules: {
-    source_file: $ => repeat(choice(
-      field('statement', $.statement),
+    source: $ => repeat(choice(
+      field('typeRef', $.typeRef),
     )),
+
+    typeRef: $ => choice(
+      field('builtin', choice(
+        alias('bool', $.bool),
+        alias('byte', $.byte),
+        alias('int', $.int),
+        alias('uint', $.uint),
+        alias('long', $.long),
+        alias('ulong', $.ulong),
+        alias('char', $.char),
+        alias('string', $.string),
+      )),
+      field('custom', $.identifier),
+      field('array', seq(
+        'array',
+        '[',
+        repeat(','),
+        ']',
+        'of',
+        $.typeRef,
+      ))
+    ),
 
     statement: $ => choice(
       field('if', $.if_statement),
