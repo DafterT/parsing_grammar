@@ -34,9 +34,40 @@ module.exports = grammar({
   name: "var2",
 
   rules: {
-    source: $ => repeat(choice(
+    source: $ => repeat(
+      field('sourceItem', $.sourceItem),
+    ),
+
+    sourceItem: $ => field('funcDef', $.funcDef), 
+
+    funcDef: $ => seq(
+      'method',
       field('funcSignature', $.funcSignature),
-    )),
+      choice(
+        field('body', $.body),
+        ';',
+      )
+    ),
+
+    body: $ => seq(
+      optional(seq(
+        'var',
+        repeat(seq(
+          field('list_identifier', $.list_identifier),
+          optional(seq(
+            ':',
+            field('typeRef', $.typeRef)
+          )),
+          ';'
+        ))
+      )),
+      field('statment_block', $.block_content)
+    ),
+
+    list_identifier: $ => seq(
+      field('identifier', $.identifier),
+      repeat(seq(',', field('identifier', $.identifier)))
+    ),
 
     funcSignature: $ => seq(
       field('identifier', $.identifier),
