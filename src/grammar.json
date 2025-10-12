@@ -9,11 +9,244 @@
         "members": [
           {
             "type": "FIELD",
+            "name": "statement",
+            "content": {
+              "type": "SYMBOL",
+              "name": "statement"
+            }
+          }
+        ]
+      }
+    },
+    "statement": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "if",
+          "content": {
+            "type": "SYMBOL",
+            "name": "if_statement"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "block",
+          "content": {
+            "type": "SYMBOL",
+            "name": "block_content"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "while",
+          "content": {
+            "type": "SYMBOL",
+            "name": "while_content"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "do",
+          "content": {
+            "type": "SYMBOL",
+            "name": "do_content"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "break",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "STRING",
+                  "value": "break"
+                },
+                "named": true,
+                "value": "break"
+              },
+              {
+                "type": "STRING",
+                "value": ";"
+              }
+            ]
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "expr",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "expression"
+              },
+              {
+                "type": "STRING",
+                "value": ";"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "do_content": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "repeat"
+        },
+        {
+          "type": "FIELD",
+          "name": "statement",
+          "content": {
+            "type": "SYMBOL",
+            "name": "statement"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "while"
+            },
+            {
+              "type": "STRING",
+              "value": "until"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "expr",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expression"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ";"
+        }
+      ]
+    },
+    "while_content": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "while"
+        },
+        {
+          "type": "FIELD",
+          "name": "expr",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expression"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "do"
+        },
+        {
+          "type": "FIELD",
+          "name": "statement",
+          "content": {
+            "type": "SYMBOL",
+            "name": "statement"
+          }
+        }
+      ]
+    },
+    "block_content": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "begin"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "FIELD",
+            "name": "statement",
+            "content": {
+              "type": "SYMBOL",
+              "name": "statement"
+            }
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "end"
+        },
+        {
+          "type": "STRING",
+          "value": ";"
+        }
+      ]
+    },
+    "if_statement": {
+      "type": "PREC_RIGHT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "if"
+          },
+          {
+            "type": "FIELD",
             "name": "expr",
             "content": {
               "type": "SYMBOL",
               "name": "expression"
             }
+          },
+          {
+            "type": "STRING",
+            "value": "then"
+          },
+          {
+            "type": "FIELD",
+            "name": "statement",
+            "content": {
+              "type": "SYMBOL",
+              "name": "statement"
+            }
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "else"
+                  },
+                  {
+                    "type": "FIELD",
+                    "name": "statement",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "statement"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
           }
         ]
       }
@@ -247,14 +480,6 @@
                   {
                     "type": "STRING",
                     "value": "~"
-                  },
-                  {
-                    "type": "STRING",
-                    "value": "-"
-                  },
-                  {
-                    "type": "STRING",
-                    "value": "+"
                   }
                 ]
               },
@@ -715,7 +940,7 @@
                   "type": "ALIAS",
                   "content": {
                     "type": "STRING",
-                    "value": "=="
+                    "value": "="
                   },
                   "named": true,
                   "value": "bin_op"

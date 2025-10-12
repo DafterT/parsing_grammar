@@ -35,7 +35,41 @@ module.exports = grammar({
 
   rules: {
     source_file: $ => repeat(choice(
+      field('statement', $.statement),
+    )),
+
+    statement: $ => choice(
+      field('if', $.if_statement),
+      field('block', $.block_content),
+      field('while', $.while_content),
+      field('do', $.do_content),
+      field('break', seq(alias('break', $.break),';')),
+      field('expr', seq($.expression,';')),
+    ),
+
+    do_content: $ => seq(
+      'repeat',
+      field('statement', $.statement),
+      choice('while', 'until'),
       field('expr', $.expression),
+      ';'
+    ),  
+
+    while_content: $ => seq(
+      'while',
+      field('expr', $.expression),
+      'do',
+      field('statement', $.statement),
+    ),
+
+    block_content: $ => seq('begin', repeat(field('statement', $.statement)), 'end', ';'),
+
+    if_statement: $ => prec.right(seq(
+      'if',
+      field('expr', $.expression),
+      'then',
+      field('statement', $.statement),
+      optional(seq('else', field('statement', $.statement))),
     )),
 
     expression: $ => choice(
@@ -63,7 +97,7 @@ module.exports = grammar({
     ),
 
     unary_expression: $ => prec.left(PREC.UNARY, seq(
-      field('unOp', alias(choice('!', '~', '-', '+'), $.un_op)),
+      field('unOp', alias(choice('!', '~'), $.un_op)),
       field('expr', $.expression),
     )),
 
@@ -80,7 +114,7 @@ module.exports = grammar({
         ['|', PREC.INCLUSIVE_OR],
         ['^', PREC.EXCLUSIVE_OR],
         ['&', PREC.BITWISE_AND],
-        ['==', PREC.EQUAL],
+        ['=', PREC.EQUAL],
         ['!=', PREC.EQUAL],
         ['>', PREC.RELATIONAL],
         ['>=', PREC.RELATIONAL],

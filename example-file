@@ -1,1 +1,22 @@
-aa+0b10101*g(c*(d*12+123*a(a[44,22],2)))
+if a := 5 then begin
+    if a := 5 then begin
+
+    end;
+end;
+else begin
+    a:=4;
+    break;
+    while a = 3 do begin
+        a := 3;
+    end;
+    repeat begin
+        a + 5;
+        a = 3;
+        break;
+    end; while 2 = 2;
+    repeat begin
+        a + 5;
+        a = 3;
+        break;
+    end; until 2 = 2;
+end;
