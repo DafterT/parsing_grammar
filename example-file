@@ -1,4 +1,4 @@
-method hello_world(text: string): string
+method hello_world(text: string): as
 var asd, asd: hell; hej, asjj: int;
 begin
     if a = 2 then begin

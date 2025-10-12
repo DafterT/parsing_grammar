@@ -292,8 +292,7 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "FIELD",
-          "name": "builtin",
+          "type": "ALIAS",
           "content": {
             "type": "CHOICE",
             "members": [
@@ -370,7 +369,9 @@
                 "value": "string"
               }
             ]
-          }
+          },
+          "named": true,
+          "value": "builtin"
         },
         {
           "type": "FIELD",

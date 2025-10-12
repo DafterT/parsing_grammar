@@ -567,44 +567,6 @@
           }
         ]
       },
-      "builtin": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "bool",
-            "named": true
-          },
-          {
-            "type": "byte",
-            "named": true
-          },
-          {
-            "type": "char",
-            "named": true
-          },
-          {
-            "type": "int",
-            "named": true
-          },
-          {
-            "type": "long",
-            "named": true
-          },
-          {
-            "type": "string",
-            "named": true
-          },
-          {
-            "type": "uint",
-            "named": true
-          },
-          {
-            "type": "ulong",
-            "named": true
-          }
-        ]
-      },
       "custom": {
         "multiple": false,
         "required": false,
@@ -615,6 +577,44 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "bool",
+          "named": true
+        },
+        {
+          "type": "byte",
+          "named": true
+        },
+        {
+          "type": "char",
+          "named": true
+        },
+        {
+          "type": "int",
+          "named": true
+        },
+        {
+          "type": "long",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        },
+        {
+          "type": "uint",
+          "named": true
+        },
+        {
+          "type": "ulong",
+          "named": true
+        }
+      ]
     }
   },
   {
