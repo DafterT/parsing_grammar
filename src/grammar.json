@@ -297,80 +297,40 @@
             "type": "CHOICE",
             "members": [
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "bool"
-                },
-                "named": true,
+                "type": "STRING",
                 "value": "bool"
               },
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "byte"
-                },
-                "named": true,
+                "type": "STRING",
                 "value": "byte"
               },
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "int"
-                },
-                "named": true,
+                "type": "STRING",
                 "value": "int"
               },
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "uint"
-                },
-                "named": true,
+                "type": "STRING",
                 "value": "uint"
               },
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "long"
-                },
-                "named": true,
+                "type": "STRING",
                 "value": "long"
               },
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "ulong"
-                },
-                "named": true,
+                "type": "STRING",
                 "value": "ulong"
               },
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "char"
-                },
-                "named": true,
+                "type": "STRING",
                 "value": "char"
               },
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "string"
-                },
-                "named": true,
+                "type": "STRING",
                 "value": "string"
               }
             ]
           },
-          "named": true,
+          "named": false,
           "value": "builtin"
         },
         {
@@ -385,37 +345,41 @@
           "type": "FIELD",
           "name": "array",
           "content": {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "STRING",
-                "value": "array"
-              },
-              {
-                "type": "STRING",
-                "value": "["
-              },
-              {
-                "type": "REPEAT",
-                "content": {
-                  "type": "STRING",
-                  "value": ","
-                }
-              },
-              {
-                "type": "STRING",
-                "value": "]"
-              },
-              {
-                "type": "STRING",
-                "value": "of"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "typeRef"
-              }
-            ]
+            "type": "SYMBOL",
+            "name": "array"
           }
+        }
+      ]
+    },
+    "array": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "array"
+        },
+        {
+          "type": "STRING",
+          "value": "["
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "STRING",
+            "value": ","
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "]"
+        },
+        {
+          "type": "STRING",
+          "value": "of"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "typeRef"
         }
       ]
     },
@@ -478,22 +442,30 @@
         },
         {
           "type": "FIELD",
-          "name": "expr",
+          "name": "expression",
           "content": {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "expression"
-              },
-              {
-                "type": "STRING",
-                "value": ";"
-              }
-            ]
+            "type": "SYMBOL",
+            "name": "expression_content"
           }
         }
       ]
+    },
+    "expression_content": {
+      "type": "FIELD",
+      "name": "expr",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "expression"
+          },
+          {
+            "type": "STRING",
+            "value": ";"
+          }
+        ]
+      }
     },
     "do_content": {
       "type": "SEQ",
@@ -720,34 +692,38 @@
           "type": "FIELD",
           "name": "literal",
           "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "bool"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "str"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "char"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "hex"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "bits"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "dec"
-              }
-            ]
+            "type": "SYMBOL",
+            "name": "literal"
           }
+        }
+      ]
+    },
+    "literal": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "bool"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "str"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "char"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "hex"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "bits"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "dec"
         }
       ]
     },

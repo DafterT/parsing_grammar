@@ -26,6 +26,21 @@
     }
   },
   {
+    "type": "array",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "typeRef",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "binary_expression",
     "named": true,
     "fields": {
@@ -217,27 +232,7 @@
         "required": false,
         "types": [
           {
-            "type": "bits",
-            "named": true
-          },
-          {
-            "type": "bool",
-            "named": true
-          },
-          {
-            "type": "char",
-            "named": true
-          },
-          {
-            "type": "dec",
-            "named": true
-          },
-          {
-            "type": "hex",
-            "named": true
-          },
-          {
-            "type": "str",
+            "type": "literal",
             "named": true
           }
         ]
@@ -258,6 +253,26 @@
         "types": [
           {
             "type": "unary_expression",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expression_content",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": ";",
+            "named": false
+          },
+          {
+            "type": "expression",
             "named": true
           }
         ]
@@ -427,6 +442,41 @@
     }
   },
   {
+    "type": "literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "bits",
+          "named": true
+        },
+        {
+          "type": "bool",
+          "named": true
+        },
+        {
+          "type": "char",
+          "named": true
+        },
+        {
+          "type": "dec",
+          "named": true
+        },
+        {
+          "type": "hex",
+          "named": true
+        },
+        {
+          "type": "str",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "source",
     "named": true,
     "root": true,
@@ -497,16 +547,12 @@
           }
         ]
       },
-      "expr": {
-        "multiple": true,
+      "expression": {
+        "multiple": false,
         "required": false,
         "types": [
           {
-            "type": ";",
-            "named": false
-          },
-          {
-            "type": "expression",
+            "type": "expression_content",
             "named": true
           }
         ]
@@ -538,31 +584,11 @@
     "named": true,
     "fields": {
       "array": {
-        "multiple": true,
+        "multiple": false,
         "required": false,
         "types": [
           {
-            "type": ",",
-            "named": false
-          },
-          {
-            "type": "[",
-            "named": false
-          },
-          {
-            "type": "]",
-            "named": false
-          },
-          {
             "type": "array",
-            "named": false
-          },
-          {
-            "type": "of",
-            "named": false
-          },
-          {
-            "type": "typeRef",
             "named": true
           }
         ]
@@ -577,44 +603,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "bool",
-          "named": true
-        },
-        {
-          "type": "byte",
-          "named": true
-        },
-        {
-          "type": "char",
-          "named": true
-        },
-        {
-          "type": "int",
-          "named": true
-        },
-        {
-          "type": "long",
-          "named": true
-        },
-        {
-          "type": "string",
-          "named": true
-        },
-        {
-          "type": "uint",
-          "named": true
-        },
-        {
-          "type": "ulong",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -718,8 +706,8 @@
     "named": true
   },
   {
-    "type": "byte",
-    "named": true
+    "type": "builtin",
+    "named": false
   },
   {
     "type": "char",
@@ -758,14 +746,6 @@
     "named": false
   },
   {
-    "type": "int",
-    "named": true
-  },
-  {
-    "type": "long",
-    "named": true
-  },
-  {
     "type": "method",
     "named": false
   },
@@ -782,24 +762,12 @@
     "named": true
   },
   {
-    "type": "string",
-    "named": true
-  },
-  {
     "type": "then",
     "named": false
   },
   {
     "type": "true",
     "named": false
-  },
-  {
-    "type": "uint",
-    "named": true
-  },
-  {
-    "type": "ulong",
-    "named": true
   },
   {
     "type": "un_op",

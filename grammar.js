@@ -38,7 +38,7 @@ module.exports = grammar({
       field('sourceItem', $.sourceItem),
     ),
 
-    sourceItem: $ => field('funcDef', $.funcDef), 
+    sourceItem: $ => field('funcDef', $.funcDef),
 
     funcDef: $ => seq(
       'method',
@@ -94,25 +94,27 @@ module.exports = grammar({
     ),
 
     typeRef: $ => choice(
-      field('builtin', choice(
-        alias('bool', $.bool),
-        alias('byte', $.byte),
-        alias('int', $.int),
-        alias('uint', $.uint),
-        alias('long', $.long),
-        alias('ulong', $.ulong),
-        alias('char', $.char),
-        alias('string', $.string),
-      )),
+      alias(choice(
+        'bool',
+        'byte',
+        'int',
+        'uint',
+        'long',
+        'ulong',
+        'char',
+        'string',
+      ), 'builtin'),
       field('custom', $.identifier),
-      field('array', seq(
-        'array',
-        '[',
-        repeat(','),
-        ']',
-        'of',
-        $.typeRef,
-      ))
+      field('array', $.array)
+    ),
+
+    array: $ => seq(
+      'array',
+      '[',
+      repeat(','),
+      ']',
+      'of',
+      $.typeRef,
     ),
 
     statement: $ => choice(
@@ -121,8 +123,10 @@ module.exports = grammar({
       field('while', $.while_content),
       field('do', $.do_content),
       field('break', seq(alias('break', $.break), ';')),
-      field('expr', seq($.expression, ';')),
+      field('expression', $.expression_content),
     ),
+
+    expression_content: $ => field('expr', seq($.expression, ';')),
 
     do_content: $ => seq(
       'repeat',
@@ -156,8 +160,10 @@ module.exports = grammar({
       field('call', $.call_expression),
       field('indexer', $.indexer),
       field('place', $.identifier),
-      field('literal', choice($.bool, $.str, $.char, $.hex, $.bits, $.dec)),
+      field('literal', $.literal),
     ),
+
+    literal: $ => choice($.bool, $.str, $.char, $.hex, $.bits, $.dec),
 
     indexer: $ => prec(PREC.SUBSCRIPT, seq(
       field('expr', $.expression),

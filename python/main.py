@@ -1,5 +1,3 @@
-# ts_min.py
-#!/usr/bin/env python3
 import argparse
 import os
 import platform
@@ -8,6 +6,7 @@ from ctypes import CDLL, PYFUNCTYPE, pythonapi, c_void_p, c_char_p, py_object
 
 from tree_sitter import Language, Parser
 import tree_sitter
+
 
 def parse_cli():
     p = argparse.ArgumentParser(description="Сборка и запуск tree-sitter парсера")
@@ -25,10 +24,14 @@ def build_parser(grammar_dir: str, lang_name: str) -> str:
     out_path = os.path.join(out_dir, f"{lang_name}.dll")
 
     # Генерация и сборка через официальную CLI
-    subprocess.run(["tree-sitter", "generate", "--abi", str(tree_sitter.LANGUAGE_VERSION)],
-                   cwd=grammar_dir, check=True)
-    subprocess.run(["tree-sitter", "build", "-o", out_path],
-                   cwd=grammar_dir, check=True)
+    subprocess.run(
+        ["tree-sitter", "generate", "--abi", str(tree_sitter.LANGUAGE_VERSION)],
+        cwd=grammar_dir,
+        check=True,
+    )
+    subprocess.run(
+        ["tree-sitter", "build", "-o", out_path], cwd=grammar_dir, check=True
+    )
     return out_path
 
 
@@ -42,7 +45,9 @@ def load_and_parse(lib_path: str, lang_name: str, file_path: str):
     func.restype = c_void_p
     ptr = func()
 
-    PyCapsule_New = PYFUNCTYPE(py_object, c_void_p, c_char_p, c_void_p)(("PyCapsule_New", pythonapi))
+    PyCapsule_New = PYFUNCTYPE(py_object, c_void_p, c_char_p, c_void_p)(
+        ("PyCapsule_New", pythonapi)
+    )
     capsule = PyCapsule_New(ptr, b"tree_sitter.Language", None)
     lang = Language(capsule)
 
@@ -52,24 +57,46 @@ def load_and_parse(lib_path: str, lang_name: str, file_path: str):
     tree = parser.parse(data, encoding="utf8")
     return tree.root_node
 
+
 def field_name_of(node):
     p = node.parent
     if p is None:
         return node.type
     for i in range(p.child_count):
-        if p.child(i) == node:
-            return p.field_name_for_child(i)  # вернёт 'if' или None
+        if p.child(i) == node and p.field_name_for_child(i):
+            return p.field_name_for_child(i)
     return node.type
+
 
 def main():
     grammar_dir, lang_name, file_path = parse_cli()
     lib_path = build_parser(grammar_dir, lang_name)
     root = load_and_parse(lib_path, lang_name, file_path)
+
     def walk(node, indent=0):
         fname = field_name_of(node)
         is_token = node.type in (
-            "identifier", "bin_op", "str", "char", "hex", "bits", "dec", "bool", "un_op", "break", "builtin"
+            "identifier",
+            "bin_op",
+            "str",
+            "char",
+            "hex",
+            "bits",
+            "dec",
+            "un_op",
+            "break",
+            "builtin",
         )
+
+        replace_names = {
+            "list_argDef": "list<argDef>",
+            "list_identifier": "list<identifier>",
+            "statment_block": "statment.block",
+            "listExpr": "list<expr>",
+        }
+
+        if fname in replace_names:
+            fname = replace_names[fname]
 
         indent_str = "  " * indent
         indent_next = indent + 1 if is_token else indent
