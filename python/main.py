@@ -1,8 +1,9 @@
 import argparse
 import os
-import platform
+import sys
 import subprocess
 from ctypes import CDLL, PYFUNCTYPE, pythonapi, c_void_p, c_char_p, py_object
+from pathlib import Path
 
 from tree_sitter import Language, Parser
 import tree_sitter
@@ -13,8 +14,9 @@ def parse_cli():
     p.add_argument("grammar_dir", help="Путь к папке с грамматикой (library)")
     p.add_argument("lang_name", help="Имя парсера, напр. 'foo' для tree_sitter_foo")
     p.add_argument("file_path", help="Путь к файлу для парсинга")
+    p.add_argument("out_file_path", help="Путь к выходному файлу")
     a = p.parse_args()
-    return a.grammar_dir, a.lang_name, a.file_path
+    return a.grammar_dir, a.lang_name, a.file_path, a.out_file_path
 
 
 def build_parser(grammar_dir: str, lang_name: str) -> str:
@@ -68,14 +70,33 @@ def field_name_of(node):
     return node.type
 
 
-def main():
-    grammar_dir, lang_name, file_path = parse_cli()
-    lib_path = build_parser(grammar_dir, lang_name)
-    root = load_and_parse(lib_path, lang_name, file_path)
+def write_tree_to_file(node, out_path: str | Path, *, ascii: bool = False) -> None:
+    """
+    Пишет вывод дерева в файл out_path.
+    Ветвление оформлено как в `tree`. Логика печати полностью соответствует исходной.
+    """
+    VBAR, SPACE, TEE, ELBOW = ("|   ", "    ", "|-- ", "`-- ") if ascii else ("│   ", "    ", "├── ", "└── ")
 
-    def walk(node, indent=0):
-        fname = field_name_of(node)
-        is_token = node.type in (
+    replace_names = {
+        "list_argDef": "list<argDef>",
+        "list_identifier": "list<identifier>",
+        "statment_block": "statment.block",
+        "listExpr": "list<expr>",
+    }
+
+    def _prefix(anc_has_next: list[bool], is_last: bool) -> str:
+        if not anc_has_next:
+            return ""
+        
+        base = "".join(VBAR if has_next else SPACE for has_next in anc_has_next)
+        return base + (ELBOW if is_last else TEE)
+
+    def _child_anc(anc_has_next: list[bool], is_last: bool) -> list[bool]:
+        return [*anc_has_next, not is_last]
+
+    def _walk(n, indent: int, anc_has_next: list[bool], is_last: bool, out):
+        fname = field_name_of(n)
+        is_token = n.type in (
             "identifier",
             "bin_op",
             "str",
@@ -87,35 +108,44 @@ def main():
             "break",
             "builtin",
         )
-
-        replace_names = {
-            "list_argDef": "list<argDef>",
-            "list_identifier": "list<identifier>",
-            "statment_block": "statment.block",
-            "listExpr": "list<expr>",
-        }
-
         if fname in replace_names:
             fname = replace_names[fname]
 
-        indent_str = "  " * indent
-        indent_next = indent + 1 if is_token else indent
-        indent_next_str = "  " * indent_next
-
         if is_token:
-            print(f"{indent_str}{fname}")
+            out.write(f"{_prefix(anc_has_next, is_last)}{fname}\n")
 
-        if len(node.children) == 0:
-            text = node.text.decode("utf-8")
-            print(f'{indent_next_str}"{text}"')
+        if n.is_missing:
+            print(f"Error: missing element \"{n.type}\" in end point {n.end_point}",file=sys.stderr)
+        if n.is_error:
+            print(f"Error: incorrect in end point {n.end_point}",file=sys.stderr)
+        
+        if len(n.children) == 0:
+            text = n.text.decode("utf-8")
+            if is_token:
+                child_pref = _prefix(_child_anc(anc_has_next, is_last), True)
+                out.write(f'{child_pref}"{text}"\n')
+            else:
+                out.write(f'{_prefix(anc_has_next, is_last)}"{text}"\n')
         else:
-            print(f"{indent_str}{fname}")
+            out.write(f"{_prefix(anc_has_next, is_last)}{fname}\n")
 
-        for ch in node.children:
-            walk(ch, indent + 1)
+        child_anc = _child_anc(anc_has_next, is_last)
+        for i, ch in enumerate(n.children):
+            _walk(ch, indent + 1, child_anc, i == len(n.children) - 1, out)
 
-    walk(root)
-    # дальнейшая логика — на вашей стороне
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", encoding="utf-8") as f:
+        _walk(node, 0, [], True, f)
+
+
+
+def main():
+    grammar_dir, lang_name, file_path, out_file_path = parse_cli()
+    lib_path = build_parser(grammar_dir, lang_name)
+    root = load_and_parse(lib_path, lang_name, file_path)
+
+    write_tree_to_file(root, out_file_path)
 
 
 if __name__ == "__main__":

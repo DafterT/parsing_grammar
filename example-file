@@ -1,4 +1,4 @@
-method hello_world(text: string, asd: array [] of bool, kas: array[,,,] of char,
+method hello_world(textos: string, asd: array [] of bool, kas: array[,,,] of char,
     pap: array[] of array[] of array [,,,] of int, pivo): as
 var asd, asd: hell; hej, asjj: int;
 begin
