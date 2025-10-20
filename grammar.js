@@ -156,11 +156,17 @@ module.exports = grammar({
     expression: $ => choice(
       field('unary', $.unary_expression),
       field('binary', $.binary_expression),
-      field('braces', seq('(', $.expression, ')')),
+      field('braces', $.braces_expression),
       field('call', $.call_expression),
       field('indexer', $.indexer),
       field('place', $.identifier),
       field('literal', $.literal),
+    ),
+
+    braces_expression: $ => seq(
+      '(', 
+      field('expr', $.expression), 
+      ')'
     ),
 
     literal: $ => choice($.bool, $.str, $.char, $.hex, $.bits, $.dec),
