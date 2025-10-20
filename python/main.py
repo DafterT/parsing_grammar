@@ -11,12 +11,42 @@ import tree_sitter
 
 def parse_cli():
     p = argparse.ArgumentParser(description="Сборка и запуск tree-sitter парсера")
-    p.add_argument("grammar_dir", help="Путь к папке с грамматикой (library)")
-    p.add_argument("lang_name", help="Имя парсера, напр. 'foo' для tree_sitter_foo")
+
+    # Новый способ: скомпилированная библиотека
+    p.add_argument(
+        "--lib",
+        dest="lib_path",
+        help="Путь к уже скомпилированной tree-sitter библиотеке (.so/.dll/.dylib). "
+             "В этом случае grammar_dir и lang_name не нужны.",
+    )
+
+    # Старый способ: исходники + имя языка (оставляем для обратной совместимости)
+    p.add_argument("grammar_dir", nargs="?", help="Путь к папке с грамматикой (library)")
+    p.add_argument("lang_name", nargs="?", help="Имя парсера, напр. 'foo' для tree_sitter_foo")
+
+    # Общие аргументы
     p.add_argument("file_path", help="Путь к файлу для парсинга")
     p.add_argument("out_file_path", help="Путь к выходному файлу")
+
     a = p.parse_args()
-    return a.grammar_dir, a.lang_name, a.file_path, a.out_file_path
+
+    # Определяем режим
+    if a.lib_path:
+        grammar_dir = None
+        # Пытаемся вывести lang_name из имени библиотеки
+        stem = Path(a.lib_path).stem  # e.g. libfoo -> libfoo, foo -> foo
+        lang_name = stem[3:] if stem.startswith("lib") else stem
+        lib_path = a.lib_path
+    else:
+        # Требуем старые позиционные
+        if not a.grammar_dir or not a.lang_name:
+            p.error("Нужно указать либо --lib <путь_к_библиотеке>, либо grammar_dir и lang_name.")
+        grammar_dir = a.grammar_dir
+        lang_name = a.lang_name
+        lib_path = None
+
+    return grammar_dir, lang_name, a.file_path, a.out_file_path, lib_path
+
 
 
 def build_parser(grammar_dir: str, lang_name: str) -> str:
@@ -156,9 +186,13 @@ def write_tree_to_file(node, out_path: str | Path, *, ascii: bool = False) -> No
 
 
 def main():
-    grammar_dir, lang_name, file_path, out_file_path = parse_cli()
-    lib_path = build_parser(grammar_dir, lang_name)
-    root = load_and_parse(lib_path, lang_name, file_path)
+    grammar_dir, lang_name, file_path, out_file_path, lib_path = parse_cli()
+
+    if lib_path:
+        root = load_and_parse(lib_path, lang_name, file_path)
+    else:
+        built_lib = build_parser(grammar_dir, lang_name)
+        root = load_and_parse(built_lib, lang_name, file_path)
 
     write_tree_to_file(root, out_file_path)
 
