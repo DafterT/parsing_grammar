@@ -21,5 +21,14 @@ begin
     repeat begin end; while a;
     repeat begin end; until l;
     break;
+
+    if a then 
+        if b then
+            a = 2;
+        else
+            b = 2;
+    
+    (ok := !false) * (x := 10) - 1;
+
 end;
 

@@ -148,7 +148,10 @@ def write_tree_to_file(node, out_path: str | Path, *, ascii: bool = False) -> No
                 child_pref = _prefix(_child_anc(anc_has_next, is_last), True)
                 out.write(f'{child_pref}"{text}"\n')
             else:
-                out.write(f'{_prefix(anc_has_next, is_last)}"{text}"\n')
+                if not anc_has_next:
+                    out.write(f"{_prefix(anc_has_next, is_last)}{fname}\n")
+                else:
+                    out.write(f'{_prefix(anc_has_next, is_last)}"{text}"\n')
         else:
             out.write(f"{_prefix(anc_has_next, is_last)}{fname}\n")
 

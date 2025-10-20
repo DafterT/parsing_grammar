@@ -229,5 +229,97 @@ source
                     │   └── break
                     │       ├── "break"
                     │       └── ";"
+                    ├── statement
+                    │   └── if
+                    │       ├── "if"
+                    │       ├── expr
+                    │       │   └── place
+                    │       │       └── "a"
+                    │       ├── "then"
+                    │       └── statement
+                    │           └── if
+                    │               ├── "if"
+                    │               ├── expr
+                    │               │   └── place
+                    │               │       └── "b"
+                    │               ├── "then"
+                    │               ├── statement
+                    │               │   └── expression
+                    │               │       ├── expr
+                    │               │       │   └── binary
+                    │               │       │       ├── expr
+                    │               │       │       │   └── place
+                    │               │       │       │       └── "a"
+                    │               │       │       ├── binOp
+                    │               │       │       │   └── "="
+                    │               │       │       └── expr
+                    │               │       │           └── literal
+                    │               │       │               └── dec
+                    │               │       │                   └── "2"
+                    │               │       └── ";"
+                    │               ├── "else"
+                    │               └── statement
+                    │                   └── expression
+                    │                       ├── expr
+                    │                       │   └── binary
+                    │                       │       ├── expr
+                    │                       │       │   └── place
+                    │                       │       │       └── "b"
+                    │                       │       ├── binOp
+                    │                       │       │   └── "="
+                    │                       │       └── expr
+                    │                       │           └── literal
+                    │                       │               └── dec
+                    │                       │                   └── "2"
+                    │                       └── ";"
+                    ├── statement
+                    │   └── expression
+                    │       ├── expr
+                    │       │   └── binary
+                    │       │       ├── expr
+                    │       │       │   └── binary
+                    │       │       │       ├── expr
+                    │       │       │       │   └── braces
+                    │       │       │       │       ├── "("
+                    │       │       │       │       ├── expr
+                    │       │       │       │       │   └── binary
+                    │       │       │       │       │       ├── expr
+                    │       │       │       │       │       │   └── place
+                    │       │       │       │       │       │       └── "ok"
+                    │       │       │       │       │       ├── binOp
+                    │       │       │       │       │       │   └── ":="
+                    │       │       │       │       │       └── expr
+                    │       │       │       │       │           └── unary
+                    │       │       │       │       │               ├── unOp
+                    │       │       │       │       │               │   └── "!"
+                    │       │       │       │       │               └── expr
+                    │       │       │       │       │                   └── literal
+                    │       │       │       │       │                       └── bool
+                    │       │       │       │       │                           └── "false"
+                    │       │       │       │       └── ")"
+                    │       │       │       ├── binOp
+                    │       │       │       │   └── "*"
+                    │       │       │       └── expr
+                    │       │       │           └── braces
+                    │       │       │               ├── "("
+                    │       │       │               ├── expr
+                    │       │       │               │   └── binary
+                    │       │       │               │       ├── expr
+                    │       │       │               │       │   └── place
+                    │       │       │               │       │       └── "x"
+                    │       │       │               │       ├── binOp
+                    │       │       │               │       │   └── ":="
+                    │       │       │               │       └── expr
+                    │       │       │               │           └── literal
+                    │       │       │               │               └── dec
+                    │       │       │               │                   └── "10"
+                    │       │       │               └── ")"
+                    │       │       ├── binOp
+                    │       │       │   └── "-"
+                    │       │       └── expr
+                    │       │           └── literal
+                    │       │               └── dec
+                    │       │                   └── "1"
+                    │       └── ";"
                     ├── "end"
                     └── ";"

@@ -1,0 +1,4 @@
+method hello_world();
+method hello_world_2(a, b: int, c: a): array[,,] of a;
+method c() 
+var a,b,c:int; d,e; begin end;
