@@ -54,7 +54,7 @@ module.exports = grammar({
       optional(seq(
         'var',
         repeat(seq(
-          field('list_identifier', $.list_identifier),
+          optional(field('list_identifier', $.list_identifier)),
           optional(seq(
             ':',
             field('typeRef', $.typeRef)
@@ -68,12 +68,12 @@ module.exports = grammar({
     list_identifier: $ => seq(
       field('identifier', $.identifier),
       repeat(seq(',', field('identifier', $.identifier)))
-    )),
+    ),
 
     funcSignature: $ => seq(
       field('identifier', $.identifier),
       '(',
-      field('list_argDef', $.list_argDef),
+      optional(field('list_argDef', $.list_argDef)),
       ')',
       optional(seq(
         ':',
@@ -181,12 +181,12 @@ module.exports = grammar({
 
     indexer: $ => prec(PREC.SUBSCRIPT, seq(
       field('expr', $.expression),
-      seq('[', field('listExpr', $.list_expr), ']')
+      seq('[', optional(field('listExpr', $.list_expr)), ']')
     )),
 
     call_expression: $ => prec(PREC.CALL, seq(
       field('expr', $.expression),
-      seq('(', field('listExpr', $.list_expr), ')')
+      seq('(', optional(field('listExpr', $.list_expr)), ')')
     )),
 
     list_expr: $ => seq(

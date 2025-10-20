@@ -1,12 +1,10 @@
-method hello_world(textos: string, asd: array [] of bool, kas: array[,,,] of char,
-    pap: array[] of array[] of array[,,,] of int, pivo): as
-var asd, asd: hell; hej, asjj: int;
+method hello_world()
 begin
     b + 3;
     !g;
     (3);
-    a(b);
-    a[b];
+    a();
+    a[a,b,c];
     asd;
     true; false;
     "asd";
@@ -24,3 +22,4 @@ begin
     repeat begin end; until l;
     break;
 end;
+

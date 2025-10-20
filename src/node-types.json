@@ -160,7 +160,7 @@
       },
       "listExpr": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "list_expr",
@@ -334,7 +334,7 @@
       },
       "list_argDef": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "list_argDef",
@@ -396,7 +396,7 @@
       },
       "listExpr": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "list_expr",

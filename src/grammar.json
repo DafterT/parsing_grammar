@@ -75,12 +75,20 @@
                     "type": "SEQ",
                     "members": [
                       {
-                        "type": "FIELD",
-                        "name": "list_identifier",
-                        "content": {
-                          "type": "SYMBOL",
-                          "name": "list_identifier"
-                        }
+                        "type": "CHOICE",
+                        "members": [
+                          {
+                            "type": "FIELD",
+                            "name": "list_identifier",
+                            "content": {
+                              "type": "SYMBOL",
+                              "name": "list_identifier"
+                            }
+                          },
+                          {
+                            "type": "BLANK"
+                          }
+                        ]
                       },
                       {
                         "type": "CHOICE",
@@ -180,12 +188,20 @@
           "value": "("
         },
         {
-          "type": "FIELD",
-          "name": "list_argDef",
-          "content": {
-            "type": "SYMBOL",
-            "name": "list_argDef"
-          }
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "list_argDef",
+              "content": {
+                "type": "SYMBOL",
+                "name": "list_argDef"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         },
         {
           "type": "STRING",
@@ -757,12 +773,20 @@
                 "value": "["
               },
               {
-                "type": "FIELD",
-                "name": "listExpr",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "list_expr"
-                }
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "FIELD",
+                    "name": "listExpr",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "list_expr"
+                    }
+                  },
+                  {
+                    "type": "BLANK"
+                  }
+                ]
               },
               {
                 "type": "STRING",
@@ -795,12 +819,20 @@
                 "value": "("
               },
               {
-                "type": "FIELD",
-                "name": "listExpr",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "list_expr"
-                }
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "FIELD",
+                    "name": "listExpr",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "list_expr"
+                    }
+                  },
+                  {
+                    "type": "BLANK"
+                  }
+                ]
               },
               {
                 "type": "STRING",
