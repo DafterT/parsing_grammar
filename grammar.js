@@ -68,7 +68,7 @@ module.exports = grammar({
     list_identifier: $ => seq(
       field('identifier', $.identifier),
       repeat(seq(',', field('identifier', $.identifier)))
-    ),
+    )),
 
     funcSignature: $ => seq(
       field('identifier', $.identifier),
@@ -146,7 +146,12 @@ module.exports = grammar({
       field('statement', $.statement),
     ),
 
-    block_content: $ => seq('begin', repeat(field('statement', $.statement)), 'end', ';'),
+    block_content: $ => seq(
+      'begin', 
+      repeat(field('statement', $.statement)), 
+      'end', 
+      ';'
+    ),
 
     if_statement: $ => prec.right(seq(
       'if',
