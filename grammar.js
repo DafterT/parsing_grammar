@@ -33,11 +33,12 @@ const PREC = {
 module.exports = grammar({
   name: "var2",
 
+  word: $ => $.identifier,
+  
   rules: {
     source: $ => repeat(
       field('sourceItem', $.sourceItem),
     ),
-
     sourceItem: $ => field('funcDef', $.funcDef),
 
     funcDef: $ => seq(
