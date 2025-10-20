@@ -12,7 +12,6 @@ import tree_sitter
 def parse_cli():
     p = argparse.ArgumentParser(description="Сборка и запуск tree-sitter парсера")
 
-    # Новый способ: скомпилированная библиотека
     p.add_argument(
         "--lib",
         dest="lib_path",
@@ -20,11 +19,9 @@ def parse_cli():
              "В этом случае grammar_dir и lang_name не нужны.",
     )
 
-    # Старый способ: исходники + имя языка (оставляем для обратной совместимости)
     p.add_argument("grammar_dir", nargs="?", help="Путь к папке с грамматикой (library)")
     p.add_argument("lang_name", nargs="?", help="Имя парсера, напр. 'foo' для tree_sitter_foo")
 
-    # Общие аргументы
     p.add_argument("file_path", help="Путь к файлу для парсинга")
     p.add_argument("out_file_path", help="Путь к выходному файлу")
 
@@ -33,12 +30,10 @@ def parse_cli():
     # Определяем режим
     if a.lib_path:
         grammar_dir = None
-        # Пытаемся вывести lang_name из имени библиотеки
         stem = Path(a.lib_path).stem  # e.g. libfoo -> libfoo, foo -> foo
         lang_name = stem[3:] if stem.startswith("lib") else stem
         lib_path = a.lib_path
     else:
-        # Требуем старые позиционные
         if not a.grammar_dir or not a.lang_name:
             p.error("Нужно указать либо --lib <путь_к_библиотеке>, либо grammar_dir и lang_name.")
         grammar_dir = a.grammar_dir
@@ -55,7 +50,6 @@ def build_parser(grammar_dir: str, lang_name: str) -> str:
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, f"{lang_name}.dll")
 
-    # Генерация и сборка через официальную CLI
     subprocess.run(
         ["tree-sitter", "generate", "--abi", str(tree_sitter.LANGUAGE_VERSION)],
         cwd=grammar_dir,
