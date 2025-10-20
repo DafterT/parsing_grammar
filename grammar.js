@@ -123,9 +123,11 @@ module.exports = grammar({
       field('block', $.block_content),
       field('while', $.while_content),
       field('do', $.do_content),
-      field('break', seq(alias('break', $.break), ';')),
+      field('break', $.break_content),
       field('expression', $.expression_content),
     ),
+
+    break_content: $ => seq('break', ';'),
 
     expression_content: $ => field('expr', seq($.expression, ';')),
 

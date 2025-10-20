@@ -105,7 +105,6 @@ def write_tree_to_file(node, out_path: str | Path, *, ascii: bool = False) -> No
             "bits",
             "dec",
             "un_op",
-            "break",
             "builtin",
         )
         if fname in replace_names:

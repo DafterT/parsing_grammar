@@ -1,6 +1,7 @@
 {
   "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
   "name": "var2",
+  "word": "identifier",
   "rules": {
     "source": {
       "type": "REPEAT",
@@ -422,22 +423,8 @@
           "type": "FIELD",
           "name": "break",
           "content": {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "break"
-                },
-                "named": true,
-                "value": "break"
-              },
-              {
-                "type": "STRING",
-                "value": ";"
-              }
-            ]
+            "type": "SYMBOL",
+            "name": "break_content"
           }
         },
         {
@@ -447,6 +434,19 @@
             "type": "SYMBOL",
             "name": "expression_content"
           }
+        }
+      ]
+    },
+    "break_content": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "break"
+        },
+        {
+          "type": "STRING",
+          "value": ";"
         }
       ]
     },

@@ -1,34 +1,26 @@
 method hello_world(textos: string, asd: array [] of bool, kas: array[,,,] of char,
-    pap: array[] of array[] of array [,,,] of int, pivo): as
+    pap: array[] of array[] of array[,,,] of int, pivo): as
 var asd, asd: hell; hej, asjj: int;
 begin
-    if a = 2 then begin
-        a:= 5;
-    end;
+    b + 3;
+    !g;
+    (3);
+    a(b);
+    a[b];
+    asd;
+    true; false;
+    "asd";
+    'a';
+    0x123;
+    0b1010;
+    123;
 
-    begin
-        a := a[2] + c(2) * 3 + (12 - 1);
-    end;
-
-    while a = 5 do a := !true;
-
-    repeat begin
-    end; while x = 2;
-
-    repeat begin
-    end; until x = ~2;
-
+    if a then a;
+    if a then a; else a;
+    begin end;
+    begin begin end; begin end; end;
+    while a do begin end;
+    repeat begin end; while a;
+    repeat begin end; until l;
     break;
-
-    x := 2;
-
-    false || true && false || false;
-
-    true;
-    false;
-    "asdsad1221s";
-    '1';
-    0x121AF2;
-    0b11101;
-    12212;
 end;

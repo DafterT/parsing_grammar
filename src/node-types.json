@@ -140,6 +140,11 @@
     }
   },
   {
+    "type": "break_content",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "call_expression",
     "named": true,
     "fields": {
@@ -532,15 +537,11 @@
         ]
       },
       "break": {
-        "multiple": true,
+        "multiple": false,
         "required": false,
         "types": [
           {
-            "type": ";",
-            "named": false
-          },
-          {
-            "type": "break",
+            "type": "break_content",
             "named": true
           }
         ]
@@ -711,7 +712,7 @@
   },
   {
     "type": "break",
-    "named": true
+    "named": false
   },
   {
     "type": "builtin",
