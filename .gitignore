@@ -51,3 +51,4 @@ zig-out/
 
 venv
 __pycache__
+.vscode
