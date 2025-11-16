@@ -166,38 +166,3 @@ def write_tree_view_to_file(
 
     with out_path.open("w", encoding="utf-8") as f:
         print_tree_view(root, ascii=ascii, out=f)
-
-def dfs_tree(root: TreeViewNode) -> None:
-    """
-    Поиск в глубину по дереву TreeViewNode.
-    Внутри _dfs оставлены зоны для пользовательской логики.
-    """
-
-    def _dfs(
-        current: TreeViewNode,
-        depth: int,
-        parent: Optional[TreeViewNode],
-        path: list[TreeViewNode],
-    ) -> None:
-        # ==== ЛОГИКА ПЕРЕД ОБХОДОМ ДЕТЕЙ (pre-order) ====
-        # current  — текущий узел
-        # depth    — глубина (0 у корня)
-        # parent   — родительский узел (у корня None)
-        # path     — путь от корня до текущего (без current)
-        #
-        # TODO: твоя логика здесь
-        # например:
-        # print(" " * depth * 2 + current.label)
-        # ===============================================
-
-        for child in current.children:
-            _dfs(child, depth + 1, current, path + [current])
-
-        # ==== ЛОГИКА ПОСЛЕ ОБХОДА ДЕТЕЙ (post-order) ====
-        # Здесь можно делать что-то, когда все потомки уже обработаны.
-        #
-        # TODO: твоя логика здесь
-        # например, подсчёт размера поддерева, сворачивание результатов и т.п.
-        # =================================================
-
-    _dfs(root, depth=0, parent=None, path=[])
