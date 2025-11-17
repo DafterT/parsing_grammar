@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, List, TextIO, Optional
+from typing import Any, List, TextIO
 import sys
 from pathlib import Path
+import io
+
 
 def field_name_of(node):
     p = node.parent
@@ -14,6 +16,7 @@ def field_name_of(node):
             return p.field_name_for_child(i)
     return node.type
 
+
 @dataclass
 class TreeViewNode:
     """
@@ -23,6 +26,7 @@ class TreeViewNode:
     node   — исходный node из парсера (для "настоящих" узлов); для синтетических узлов (empty) — None.
     children — потомки в отображаемом дереве.
     """
+
     label: str
     node: Any | None
     children: List["TreeViewNode"]
@@ -65,16 +69,25 @@ def build_tree_view(root) -> TreeViewNode:
         is_token = n.type in TOKEN_TYPES
 
         if getattr(n, "is_missing", False):
-            print(f'Error: missing element "{n.type}" in end point {n.end_point}', file=sys.stderr)
+            print(
+                f'Error: missing element "{n.type}" in end point {n.end_point}',
+                file=sys.stderr,
+            )
         if getattr(n, "is_error", False):
-            print(f'Error: incorrect in end point {n.end_point}', file=sys.stderr)
+            print(f"Error: incorrect in end point {n.end_point}", file=sys.stderr)
 
         if len(n.children) == 0:
-            text = n.text.decode("utf-8") if isinstance(n.text, (bytes, bytearray)) else str(n.text)
+            text = (
+                n.text.decode("utf-8")
+                if isinstance(n.text, (bytes, bytearray))
+                else str(n.text)
+            )
 
             if is_token:
                 parent = TreeViewNode(label=fname, node=n, children=[])
-                parent.children.append(TreeViewNode(label=f'"{text}"', node=n, children=[]))
+                parent.children.append(
+                    TreeViewNode(label=f'"{text}"', node=n, children=[])
+                )
                 return parent
 
             if not anc_has_next:
@@ -96,12 +109,14 @@ def build_tree_view(root) -> TreeViewNode:
         }
 
         need_field, left_token = inject_cfg.get(n.type, (None, None))
-        present_fields = {n.field_name_for_child(i) for i in range(n.child_count)} - {None}
+        present_fields = {n.field_name_for_child(i) for i in range(n.child_count)} - {
+            None
+        }
         should_inject = bool(need_field) and (need_field not in present_fields)
         injected = False
 
         for i, ch in enumerate(n.children):
-            ch_is_last = (i == len(n.children) - 1)
+            ch_is_last = i == len(n.children) - 1
             child_view = _build(ch, child_anc, ch_is_last)
             children_view.append(child_view)
 
@@ -129,8 +144,7 @@ def print_tree_view(
     Можно передать файл или любой другой текстовый поток.
     """
     VBAR, SPACE, TEE, ELBOW = (
-        ("|   ", "    ", "|-- ", "`-- ") if ascii
-        else ("│   ", "    ", "├── ", "└── ")
+        ("|   ", "    ", "|-- ", "`-- ") if ascii else ("│   ", "    ", "├── ", "└── ")
     )
 
     def _prefix(anc_has_next: list[bool], is_last: bool) -> str:
@@ -158,7 +172,7 @@ def write_tree_view_to_file(
     ascii: bool = False,
 ) -> None:
     """
-    Удобная обёртка: принимает дерево и путь к файлу, 
+    Удобная обёртка: принимает дерево и путь к файлу,
     создаёт директории (если нужно) и пишет туда дерево.
     """
     out_path = Path(out_path)
@@ -166,3 +180,17 @@ def write_tree_view_to_file(
 
     with out_path.open("w", encoding="utf-8") as f:
         print_tree_view(root, ascii=ascii, out=f)
+
+
+def tree_view_to_str(
+    root: TreeViewNode,
+    *,
+    ascii: bool = False,
+) -> str:
+    """
+    Возвращает строковое представление дерева TreeViewNode
+    в том же формате, что и print_tree_view.
+    """
+    buf = io.StringIO()
+    print_tree_view(root, ascii=ascii, out=buf)
+    return buf.getvalue()

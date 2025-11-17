@@ -1,27 +1,18 @@
-from graphviz import Digraph
+from get_parse_tree import parse_cli, get_tree_root
+from tree_parser import print_tree_view, build_tree_view
+from graph_parser import build_graph, render_cfg
 
-g = Digraph("NestedClusters", format="svg")
-g.attr(rankdir="LR", fontsize="10", fontname="Helvetica")
-g.attr("node", shape="box", style="rounded,filled", fillcolor="lightgray")
 
-with g.subgraph(name="cluster_outer") as outer:
-    outer.attr(label="Outer", color="lightblue")
+def main():
+    grammar_dir, lang_name, file_path, out_file_path, lib_path = parse_cli()
+    root = get_tree_root(lib_path, lang_name, file_path, grammar_dir)
+    view_root = build_tree_view(root)
+    print_tree_view(view_root)
 
-    # Подкластер 1
-    with outer.subgraph(name="cluster_inner_1") as c1:
-        c1.attr(label="Inner 1", color="lightgreen")
-        c1.node("A1", "A1")
-        c1.node("A2", "A2")
-        c1.edge("A1", "A2")
+    for i in view_root.children:
+        cfg = build_graph(i)
+        render_cfg(cfg, filename="example_cfg", fmt="svg")
 
-    # Подкластер 2
-    with outer.subgraph(name="cluster_inner_2") as c2:
-        c2.attr(label="Inner 2", color="lightpink")
-        c2.node("B1", "B1")
-        c2.node("B2", "B2")
-        c2.edge("B1", "B2")
 
-# Между подкластерными узлами — обычные связи
-g.edge("A2", "B1")
-
-g.render("nested_clusters_example", view=True)
+if __name__ == "__main__":
+    main()

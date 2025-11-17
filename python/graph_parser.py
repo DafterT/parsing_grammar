@@ -1,25 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Простой пример построения графа потока управления (CFG)
-для конструкций вида:
-    - присваивание:   x = 1
-    - if / else
-
-Идея:
-    - Каждый прямоугольник в графе = Block.
-    - Внутри Block лежит текст (или ссылка на дерево операций).
-    - Рёбра между Block задают поток управления.
-    - Для каждого оператора мы строим Fragment(entry, exits),
-      чтобы фрагменты легко склеивать.
-"""
-
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple, Union
-
-
-# ==========================
-# 1. БАЗОВЫЕ СТРУКТУРЫ CFG
-# ==========================
+from tree_parser import TreeViewNode, tree_view_to_str
+from graphviz import Digraph
 
 @dataclass
 class Block:
@@ -33,6 +15,7 @@ class Block:
     """
     id: int
     label: str
+    tree: TreeViewNode = field(default=None)
     succs: List[Tuple[int, Optional[str]]] = field(default_factory=list)
 
 
@@ -44,11 +27,11 @@ class CFG:
     blocks: Dict[int, Block] = field(default_factory=dict)
     next_id: int = 0  # счётчик для выдачи свежих id
 
-    def new_block(self, label: str) -> Block:
+    def new_block(self, label: str, tree: TreeViewNode = None) -> Block:
         """
         Создаёт новый блок с данным текстом.
         """
-        b = Block(self.next_id, label)
+        b = Block(self.next_id, label, tree)
         self.blocks[b.id] = b
         self.next_id += 1
         return b
@@ -60,290 +43,157 @@ class CFG:
         """
         src.succs.append((dst.id, label))
 
-
-# ==========================
-# 2. ПРОСТЕЙШИЙ "AST"
-# ==========================
-
-@dataclass
-class Assign:
+def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     """
-    Присваивание, например:
-        c = 2
-    Для простоты просто храним строку.
-    В реале тут может быть ссылочка на дерево выражения.
+    [0] 'begin'
+    [1->-2] statment*
+    [-2] 'end'
+    [-1] ';'
     """
-    text: str
+    begin_id = graph.new_block("begin")
+    if before: # Подсоединили предыдущий к себе
+        graph.add_edge(before, begin_id, label) 
+    statment_id = begin_id
+    for i in tree.children[1:-2]:
+        statment_id = parce_statment(i, graph, statment_id)
+    end_id = graph.new_block("end") # Создали конец
+    graph.add_edge(statment_id, end_id) # Подсоединили предыдущий к концу
+    return end_id
 
+def parce_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
+    expr_id = graph.new_block(tree_view_to_str(tree), tree) # TODO: Изменить деревья
+    graph.add_edge(before, expr_id, label) # Подсоединили
+    return expr_id
 
-@dataclass
-class If:
+def parce_if(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     """
-    Оператор if / else.
-
-    cond      - условие (строкой; в реале — дерево выражения).
-    then_body - список операторов для ветки then.
-    else_body - список операторов для ветки else или None.
+    [0] 'if'
+    [1] expr
+    [2] 'then'
+    [3] statment
+    ???
+    [4] 'else'
+    [5] statment
     """
-    cond: str
-    then_body: List["Stmt"]
-    else_body: Optional[List["Stmt"]] = None
-
-
-# Stmt может быть либо Assign, либо If
-Stmt = Union[Assign, If]
-
-
-# ==========================
-# 3. ФРАГМЕНТ ГРАФА
-# ==========================
-
-@dataclass
-class Fragment:
-    """
-    Фрагмент графа.
-
-    entry - блок, с которого начинается этот фрагмент
-    exits - список блоков, из которых поток "выходит наружу"
-            (к ним позже приклеим следующий код)
-    """
-    entry: Block
-    exits: List[Block]
-
-
-# ==========================
-# 4. ПОСТРОЕНИЕ CFG ДЛЯ ОПЕРАТОРОВ
-# ==========================
-
-def build_assign(cfg: CFG, node: Assign) -> Fragment:
-    """
-    Простой оператор (присваивание).
-    Делает один блок с текстом присваивания.
-    Вход = этот блок, выход = тоже этот блок.
-    """
-    block = cfg.new_block(node.text)
-    return Fragment(entry=block, exits=[block])
-
-
-def build_seq(cfg: CFG, stmts: List[Stmt]) -> Fragment:
-    """
-    Последовательность операторов (как внутри begin ... end).
-
-    Пример:
-        s1;
-        s2;
-        s3;
-
-    Строим фрагмент для s1 (f1), потом для s2 (f2) и т.п.,
-    и "хвосты" предыдущего фрагмента ведём в entry следующего.
-    """
-    assert stmts, "Пустую последовательность здесь не обрабатываем для простоты"
-
-    # Строим фрагмент для первого оператора
-    frag = build_stmt(cfg, stmts[0])
-    entry = frag.entry
-    exits = frag.exits
-
-    # Последовательно приклеиваем остальные
-    for stmt in stmts[1:]:
-        next_frag = build_stmt(cfg, stmt)
-
-        # Все выходы предыдущего фрагмента ведём в вход следующего
-        for e in exits:
-            cfg.add_edge(e, next_frag.entry)
-
-        # Новыми "хвостами" становятся выходы следующего фрагмента
-        exits = next_frag.exits
-
-    return Fragment(entry=entry, exits=exits)
-
-
-def build_if(cfg: CFG, node: If) -> Fragment:
-    """
-    Построение фрагмента для if / else.
-
-    Логика:
-
-        [cond_block] --True--> [then_body...]
-                     --False-> [else_body...] или сразу join
-
-        из концов then и else всё идёт в общий join-блок.
-
-    Возвращаем Fragment:
-        entry = cond_block
-        exits = [join_block]
-    """
-    # 1. Блок с условием
-    cond_block = cfg.new_block(f"if ({node.cond})")
-
-    # 2. then-ветка (если пустая — считаем, что она просто ничего не делает)
-    if node.then_body:
-        then_frag = build_seq(cfg, node.then_body)
+    expr_id = parce_expression(tree.children[1], graph, before, label)
+    statment_id = parce_statment(tree.children[3], graph, expr_id, 'True')
+    end_if = graph.new_block('end_if')
+    graph.add_edge(statment_id, end_if)
+    if len(tree.children) == 4:
+        graph.add_edge(expr_id, end_if, 'False') # End if
     else:
-        # пустая then-ветка: вход и выход один и тот же блок cond
-        then_frag = Fragment(entry=cond_block, exits=[cond_block])
-
-    # 3. else-ветка (может отсутствовать)
-    if node.else_body:
-        else_frag = build_seq(cfg, node.else_body)
-    else:
-        else_frag = None
-
-    # 4. Общий блок слияния (join)
-    join_block = cfg.new_block("join")
-
-    # 5. Рёбра от cond к then и else
-    cfg.add_edge(cond_block, then_frag.entry, "True")
-    if else_frag is not None:
-        cfg.add_edge(cond_block, else_frag.entry, "False")
-    else:
-        # Нет else: False идёт сразу в join
-        cfg.add_edge(cond_block, join_block, "False")
-
-    # 6. Хвосты then-ветки идёт в join
-    for e in then_frag.exits:
-        cfg.add_edge(e, join_block)
-
-    # 7. Хвосты else-ветки тоже в join (если она есть)
-    if else_frag is not None:
-        for e in else_frag.exits:
-            cfg.add_edge(e, join_block)
-
-    # 8. Возвращаем фрагмент if-а
-    return Fragment(entry=cond_block, exits=[join_block])
-
-
-def build_stmt(cfg: CFG, stmt: Stmt) -> Fragment:
+        statment_id = parce_statment(tree.children[5], graph, expr_id, 'False')
+        graph.add_edge(statment_id, end_if) # End if
+    return end_if
+    
+def parce_while(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     """
-    Диспетчер по типу оператора.
+    [0] 'while'
+    [1] expr
+    [2] 'do'
+    [3] statment
+    [4] ';'
     """
-    if isinstance(stmt, Assign):
-        return build_assign(cfg, stmt)
-    elif isinstance(stmt, If):
-        return build_if(cfg, stmt)
-    else:
-        raise TypeError(f"Неизвестный тип узла: {stmt!r}")
+    expr_id = parce_expression(tree.children[1], graph, before, label)
+    statment_id = parce_statment(tree.children[3], graph, expr_id, 'True')
+    end_while = graph.new_block('end_while')
+    
+    graph.add_edge(statment_id, expr_id) 
+    graph.add_edge(expr_id, end_while, 'false') 
+    return end_while
 
-
-# ==========================
-# 5. ПОСТРОЕНИЕ ВЕСЬ ФУНКЦИИ
-# ==========================
-
-def build_function_cfg(stmts: List[Stmt]) -> CFG:
+def parce_do(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     """
-    Строим CFG для всей "функции":
-        BEGIN -> тело -> END
-
-    BEGIN и END делаем отдельными блоками.
+    [0] 'repeat'
+    [1] statment
+    [2] 'while' / 'untill'
+    [3] expr
+    [4] ';'
     """
+    start_repeat = graph.new_block('start_repeat')
+    statment_id = parce_statment(tree.children[1], graph, start_repeat, label)
+    expr_id = parce_expression(tree.children[3], graph, statment_id)
+    end_repeat = graph.new_block('end_repeat')
+    
+    graph.add_edge(before, start_repeat) 
+    graph.add_edge(expr_id, start_repeat, 'true' if tree.children[2] == 'while' else 'false') 
+    graph.add_edge(expr_id, end_repeat, 'true' if tree.children[2] != 'while' else 'false') 
+    return end_repeat
+
+def parce_statment(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
+    tree = tree.children[0]
+    match tree.label:
+        case 'block':
+            return parce_block(tree, graph, before, label)
+        case 'expression':
+            return parce_expression(tree, graph, before, label)
+        case 'if':
+            return parce_if(tree, graph, before, label)
+        case 'while':
+            return parce_while(tree, graph, before, label)
+        case 'do':
+            return parce_do(tree, graph, before, label)
+        case _:
+            print(tree.label)
+            raise "Такого блока нет"
+
+def build_graph(tree: TreeViewNode):
     cfg = CFG()
-
-    # начало и конец
-    begin = cfg.new_block("BEGIN")
-    end = cfg.new_block("END")
-
-    # фрагмент для тела
-    body_frag = build_seq(cfg, stmts)
-
-    # вход: BEGIN -> entry тела
-    cfg.add_edge(begin, body_frag.entry)
-
-    # все выходы тела ведём в END
-    for e in body_frag.exits:
-        cfg.add_edge(e, end)
-
+    body = tree.children[0].children[-1]
+    if body.label != 'body':
+        return None
+    parce_block(body.children[0], cfg, None)
     return cfg
 
 
-# ==========================
-# 6. УТИЛИТЫ ДЛЯ ОТЛАДКИ / ВЫВОДА
-# ==========================
-
-def print_cfg(cfg: CFG):
+def cfg_to_graphviz(cfg: CFG,
+                    graph_name: str = "CFG",
+                    node_shape: str = "box") -> Digraph:
     """
-    Печать CFG в текстовом виде:
-        Block id: label
-          --label--> Block id
-          -----> Block id
+    Строит объект graphviz.Digraph по CFG.
+
+    - Каждый блок рисуется прямоугольником (shape=node_shape) с label.
+    - На рёбрах при наличии подписей используется label.
     """
-    for bid in sorted(cfg.blocks):
-        b = cfg.blocks[bid]
-        print(f"Block {b.id}: {b.label}")
-        for dst, lab in b.succs:
-            if lab:
-                print(f"  --{lab}--> Block {dst}")
-            else:
-                print(f"  -----> Block {dst}")
+    dot = Digraph(name=graph_name)
+    dot.attr("node", shape=node_shape)
+
+    # Сначала добавляем все вершины
+    for block in cfg.blocks.values():
+        # Можно добавить id в label, чтобы проще ориентироваться
+        node_label = f"{block.label}"
+        if block.tree is not None:
+            lines = str(block.label).splitlines()
+            node_label = ""
+            for line in lines:
+                node_label += line + "\\l" 
+        dot.node(str(block.id), label=node_label)
+
+    # Затем добавляем рёбра
+    for block in cfg.blocks.values():
+        for succ_id, edge_label in block.succs:
+            # На всякий случай проверим, что целевой блок существует
+            if succ_id not in cfg.blocks:
+                continue  # либо raise ValueError(...)
+            edge_kwargs = {}
+            if edge_label is not None:
+                edge_kwargs["label"] = edge_label
+            dot.edge(str(block.id), str(succ_id), **edge_kwargs)
+
+    return dot
 
 
-def to_dot(cfg: CFG) -> str:
+def render_cfg(cfg: CFG,
+               filename: str = "cfg",
+               fmt: str = "svg") -> None:
     """
-    Генерация текста в формате DOT для Graphviz.
-    Можно сохранить в файл и отрисовать командой:
-        dot -Tpng cfg.dot -o cfg.png
+    Рисует CFG в файл (по умолчанию cfg.png) с помощью graphviz.
+
+    :param cfg: объект CFG
+    :param filename: имя файла без расширения
+    :param fmt: формат (png, pdf, svg, ...)
     """
-    lines = [
-        "digraph CFG {",
-        "  rankdir=TB;",  # TB = top-bottom, можно LR для слева-направо
-        '  node [shape=box, style="rounded,filled", fillcolor="lightgray"];'
-    ]
-
-    # Узлы
-    for bid in sorted(cfg.blocks):
-        label = cfg.blocks[bid].label.replace('"', '\\"')
-        lines.append(f'  {bid} [label="{label}"];')
-
-    # Рёбра
-    for b in cfg.blocks.values():
-        for dst, lab in b.succs:
-            if lab:
-                lines.append(f'  {b.id} -> {dst} [label="{lab}"];')
-            else:
-                lines.append(f"  {b.id} -> {dst};")
-
-    lines.append("}")
-    return "\n".join(lines)
-
-
-# ==========================
-# 7. ПРИМЕР ИСПОЛЬЗОВАНИЯ
-# ==========================
-
-if __name__ == "__main__":
-    # Твой пример:
-    #
-    # if (a == b) begin
-    #   c = 2;
-    # end else begin
-    #   if (p == 3) begin
-    #     a = b+2;
-    #   end
-    # end
-
-    inner_if = If(
-        cond="p == 3",
-        then_body=[
-            Assign("a = b + 2"),
-        ],
-        else_body=[]  # пустой else, можно и None
-    )
-
-    outer_if = If(
-        cond="a == b",
-        then_body=[
-            Assign("c = 2"),
-        ],
-        else_body=[
-            inner_if
-        ]
-    )
-
-    # Строим CFG для "функции", внутри которой только этот if
-    cfg = build_function_cfg([outer_if])
-
-    print("=== ТЕКСТОВЫЙ ВЫВОД CFG ===")
-    print_cfg(cfg)
-
-    print("\n=== DOT ДЛЯ GRAPHVIZ ===")
-    dot_text = to_dot(cfg)
-    print(dot_text)
+    if cfg == None:
+        return
+    dot = cfg_to_graphviz(cfg)
+    dot.render(filename, format=fmt, cleanup=True)
