@@ -41,9 +41,10 @@ class CFG:
         Добавляет ребро src -> dst.
         label используется для подписей вроде True/False.
         """
-        src.succs.append((dst.id, label))
+        if dst is not None and src is not None:
+            src.succs.append((dst.id, label))
 
-def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
+def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     """
     [0] 'begin'
     [1->-2] statment*
@@ -55,7 +56,7 @@ def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
         graph.add_edge(before, begin_id, label) 
     statment_id = begin_id
     for i in tree.children[1:-2]:
-        statment_id = parce_statment(i, graph, statment_id)
+        statment_id = parce_statment(i, graph, statment_id, None, end_cycle)
     end_id = graph.new_block("end") # Создали конец
     graph.add_edge(statment_id, end_id) # Подсоединили предыдущий к концу
     return end_id
@@ -65,7 +66,7 @@ def parce_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str =
     graph.add_edge(before, expr_id, label) # Подсоединили
     return expr_id
 
-def parce_if(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
+def parce_if(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     """
     [0] 'if'
     [1] expr
@@ -76,13 +77,13 @@ def parce_if(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     [5] statment
     """
     expr_id = parce_expression(tree.children[1], graph, before, label)
-    statment_id = parce_statment(tree.children[3], graph, expr_id, 'True')
+    statment_id = parce_statment(tree.children[3], graph, expr_id, 'True', end_cycle)
     end_if = graph.new_block('end_if')
     graph.add_edge(statment_id, end_if)
     if len(tree.children) == 4:
         graph.add_edge(expr_id, end_if, 'False') # End if
     else:
-        statment_id = parce_statment(tree.children[5], graph, expr_id, 'False')
+        statment_id = parce_statment(tree.children[5], graph, expr_id, 'False', end_cycle)
         graph.add_edge(statment_id, end_if) # End if
     return end_if
     
@@ -95,8 +96,8 @@ def parce_while(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
     [4] ';'
     """
     expr_id = parce_expression(tree.children[1], graph, before, label)
-    statment_id = parce_statment(tree.children[3], graph, expr_id, 'True')
     end_while = graph.new_block('end_while')
+    statment_id = parce_statment(tree.children[3], graph, expr_id, 'True', end_while)
     
     graph.add_edge(statment_id, expr_id) 
     graph.add_edge(expr_id, end_while, 'false') 
@@ -111,28 +112,38 @@ def parce_do(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     [4] ';'
     """
     start_repeat = graph.new_block('start_repeat')
-    statment_id = parce_statment(tree.children[1], graph, start_repeat, label)
-    expr_id = parce_expression(tree.children[3], graph, statment_id)
     end_repeat = graph.new_block('end_repeat')
+    statment_id = parce_statment(tree.children[1], graph, start_repeat, label, end_repeat)
+    expr_id = parce_expression(tree.children[3], graph, statment_id)
     
     graph.add_edge(before, start_repeat) 
     graph.add_edge(expr_id, start_repeat, 'true' if tree.children[2] == 'while' else 'false') 
     graph.add_edge(expr_id, end_repeat, 'true' if tree.children[2] != 'while' else 'false') 
     return end_repeat
 
-def parce_statment(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
+def parce_break(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
+    break_id = graph.new_block('break')
+    graph.add_edge(break_id, end_cycle)
+    graph.add_edge(before, break_id, label)
+    if end_cycle == None:
+        raise SyntaxError(f"Error: break without cycle at {tree.node.end_point}")
+    return None
+    
+def parce_statment(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     tree = tree.children[0]
     match tree.label:
         case 'block':
-            return parce_block(tree, graph, before, label)
+            return parce_block(tree, graph, before, label, end_cycle)
         case 'expression':
             return parce_expression(tree, graph, before, label)
         case 'if':
-            return parce_if(tree, graph, before, label)
+            return parce_if(tree, graph, before, label, end_cycle)
         case 'while':
             return parce_while(tree, graph, before, label)
         case 'do':
             return parce_do(tree, graph, before, label)
+        case 'break':
+            return parce_break(tree, graph, before, label, end_cycle)
         case _:
             print(tree.label)
             raise "Такого блока нет"
