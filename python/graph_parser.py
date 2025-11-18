@@ -188,8 +188,8 @@ def parce_do(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     expr_id = parce_expression(tree.children[3], graph, statment_id)
     
     graph.add_edge(before, start_repeat) 
-    graph.add_edge(expr_id, start_repeat, 'true' if tree.children[2] == 'while' else 'false') 
-    graph.add_edge(expr_id, end_repeat, 'true' if tree.children[2] != 'while' else 'false') 
+    graph.add_edge(expr_id, start_repeat, 'true' if tree.children[2].label == '"while"' else 'false') 
+    graph.add_edge(expr_id, end_repeat, 'true' if tree.children[2].label != '"while"' else 'false') 
     return end_repeat
 
 def parce_break(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
@@ -225,7 +225,7 @@ def build_graph(tree: TreeViewNode) -> Tuple[CFG, List[str]]:
     body = tree.children[0].children[-1]
     if body.label != 'body':
         return None, None, None
-    parce_block(body.children[0], cfg, None)
+    parce_block(body.children[-1], cfg, None)
     return cfg, cfg.call_names, cfg.errors
 
 
