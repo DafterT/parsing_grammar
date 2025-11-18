@@ -1,25 +1,24 @@
-from get_parse_tree import parse_cli, get_tree_root
-from tree_parser import write_tree_view_to_file, build_tree_view
-from graph_parser import build_graph, render_cfg
-
+from file_parser_to_graph import (
+    parse_cli,
+    analyze_files,
+    render_call_graph,
+    write_errors_report,
+)
+from pathlib import Path
 
 def main():
-    grammar_dir, lang_name, file_path, out_file_path, lib_path = parse_cli()
-    root = get_tree_root(lib_path, lang_name, file_path, grammar_dir)
-    view_root, errors_tree_build = build_tree_view(root)
-    if errors_tree_build:
-        print('\r\n'.join(errors_tree_build))
-        return
+    # Теперь parse_cli возвращает набор файлов, а не один
+    grammar_dir, lang_name, file_paths, out_dir, lib_path = parse_cli()
+    # Запускаем обработку. Результат можно при желании как-то вывести/логировать.
+    result = analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=out_dir)
     
-    write_tree_view_to_file(view_root, f"{out_file_path}/my_tree")
+    out_dir_path = Path(out_dir)
+    out_dir_path.mkdir(parents=True, exist_ok=True)
+    call_graph_base = out_dir_path / "call_graph"
+    render_call_graph(result, filename=str(call_graph_base), fmt="svg")
 
-    for indx, i in enumerate(view_root.children):
-        cfg, call_names, errors_graph = build_graph(i)
-        print('\r\n'.join(errors_graph))
-        print('\r\n'.join(call_names))
-        render_cfg(cfg, filename=f"{out_file_path}/example_cfg_{indx}", fmt="svg")
-        cfg.remove_dangling_blocks()
-        render_cfg(cfg, filename=f"{out_file_path}/example_cfg_{indx}_rem", fmt="svg")
+    errors_report_path = call_graph_base.with_suffix(".errors.txt")
+    write_errors_report(result, filename=str(errors_report_path))
 
 
 if __name__ == "__main__":

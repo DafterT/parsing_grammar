@@ -224,9 +224,13 @@ def build_graph(tree: TreeViewNode) -> Tuple[CFG, List[str]]:
     cfg = CFG()
     body = tree.children[0].children[-1]
     if body.label != 'body':
-        return None, cfg.errors
+        return None, None, None
     parce_block(body.children[0], cfg, None)
     return cfg, cfg.call_names, cfg.errors
+
+
+def get_func_name(tree: TreeViewNode):
+    return tree.children[0].children[1].children[0].children[0].label
 
 #######################################################################
 # RENDER
