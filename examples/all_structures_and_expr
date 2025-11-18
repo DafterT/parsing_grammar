@@ -12,7 +12,7 @@ begin
     (3);
     (ok := !false) * (x := 10) - 1;
     a();
-    a[a,b,c];
+    a[a,b,c()];
 
     if a then a;
     if a then a; else a;

@@ -32,6 +32,7 @@ class CFG:
     blocks: Dict[int, Block] = field(default_factory=dict)
     next_id: int = 0  # счётчик для выдачи свежих id
     errors: List[str] = field(default_factory=list) 
+    call_names: set[str] = field(default_factory=set) 
 
     def new_block(self, label: str, tree: TreeViewNode = None) -> Block:
         """
@@ -106,6 +107,18 @@ def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
     graph.add_edge(statment_id, end_id) # Подсоединили предыдущий к концу
     return end_id
 
+def collect_call_names(node: TreeViewNode, cfg: CFG) -> None:
+    if node is None:
+        return
+
+    label = node.label
+    if isinstance(label, str) and label.startswith('call(') and label.endswith(')'):
+        func_name = label[5:-1]  # внутри скобок
+        if func_name not in cfg.call_names:
+            cfg.call_names.add(func_name)
+
+    for child in getattr(node, "children", []) or []:
+        collect_call_names(child, cfg)
 
 def parce_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     try:
@@ -113,6 +126,7 @@ def parce_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str =
             updated_tree = parse_expr(tree)
         else:
             updated_tree = parse_expr(tree.children[0])
+        collect_call_names(updated_tree, graph)
         expr_id = graph.new_block(tree_view_to_str(updated_tree), updated_tree)
     except ValueError as e:
         error_msg = str(e)
@@ -212,7 +226,7 @@ def build_graph(tree: TreeViewNode) -> Tuple[CFG, List[str]]:
     if body.label != 'body':
         return None, cfg.errors
     parce_block(body.children[0], cfg, None)
-    return cfg, cfg.errors
+    return cfg, cfg.call_names, cfg.errors
 
 #######################################################################
 # RENDER
