@@ -2,5 +2,5 @@ method hello_world_2();
 method hello_world_3(a, b: int, c: a): array[,,] of a;
 method c() 
 var a,b,c:int; d,e; begin end;
-method hello_world_2(a : int)
+method hello_world_2()
 var a,b,c:int; d,e; begin end;

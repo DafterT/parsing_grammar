@@ -4,6 +4,7 @@ from get_parse_tree import get_tree_root
 from tree_parser import write_tree_view_to_file, build_tree_view
 from graph_parser import build_graph, render_cfg, get_func_name
 from graphviz import Digraph  
+from tree_parser import TreeViewNode
 
 import argparse
 
@@ -98,24 +99,41 @@ def parse_cli():
 
     return grammar_dir, lang_name, file_paths, out_dir, lib_path
 
+def compare_treeviews(previous_subtree: TreeViewNode | None,
+                      current_subtree: TreeViewNode | None) -> bool:
+    """
+    Сравнивает два поддерева TreeViewNode по label и структуре children.
+    Поле `node` не учитывается.
+
+    Возвращает True, если деревья эквивалентны, иначе False.
+    """
+    # Оба отсутствуют
+    if previous_subtree is None and current_subtree is None:
+        return True
+
+    # Только одно из них отсутствует
+    if previous_subtree is None or current_subtree is None:
+        return False
+
+    # Сравниваем метки
+    if previous_subtree.label != current_subtree.label:
+        return False
+
+    # Сравниваем количество потомков
+    if len(previous_subtree.children) != len(current_subtree.children):
+        return False
+
+    # Рекурсивно сравниваем детей по порядку
+    for child_prev, child_curr in zip(previous_subtree.children, current_subtree.children):
+        if not compare_treeviews(child_prev, child_curr):
+            return False
+
+    return True
+
 
 def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
     """
     Обработка набора файлов.
-
-    :param file_paths: iterable путей к входным файлам.
-    :param lib_path: путь к уже собранной библиотеке tree-sitter (или None, если используем grammar_dir).
-    :param lang_name: имя языка (foo => tree_sitter_foo).
-    :param grammar_dir: путь к папке с грамматикой (или None, если используем lib_path).
-    :param out_dir: базовая папка для вывода (`tree/` и `graph/`). Если None — файлы не пишем.
-
-    :return: словарь вида:
-             {
-                 "func_name": (set(call_names), [errors...]),
-                 "<file:имя_файла>": (set(), [file_level_errors...]),
-                 ...
-             }
-             Для каждой функции — множество вызываемых функций и список всех ошибок/предупреждений.
     """
     results_internal = {}  # func_name -> {"calls": set(), "errors": [], "cfg": None, "tree": None}
     global_func_names = set()  # множество всех имён функций (для проверки дубликатов)
@@ -135,7 +153,7 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
         root = get_tree_root(lib_path, lang_name, file_path, grammar_dir)
         view_root, errors_tree_build = build_tree_view(root)
 
-        # Ошибки построения дерева: не прерываем всю обработку, а завязываем на "псевдо-функцию" файла
+        # Ошибки построения дерева
         if errors_tree_build:
             pseudo_name = f"<file:{input_file_name}>"
             data = results_internal.setdefault(
@@ -143,10 +161,8 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
             )
             for msg in errors_tree_build:
                 data["errors"].append(f"{file_path}: {msg}")
-            # По аналогии с исходным кодом — функции для этого файла не разбираем
             continue
 
-        # Сохраняем дерево в файл (если задан out_dir)
         if tree_dir is not None:
             write_tree_view_to_file(view_root, str(tree_dir / input_file_name))
 
@@ -154,14 +170,15 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
         for node in getattr(view_root, "children", []):
             func_name = get_func_name(node).strip().strip('"')
             if not func_name:
-                # На всякий случай пропускаем "безымянные" узлы
                 continue
 
             data = results_internal.setdefault(
                 func_name, {"calls": set(), "errors": [], "cfg": None, "tree": node}
             )
-            # Всегда обновляем tree на последний узел (объявление/реализацию)
-            data["tree"] = node
+
+            # ВАЖНО: сохраняем старое дерево ДО любых изменений
+            previous_tree = data["tree"]
+            current_tree = node
 
             # Проверка повторных объявлений / перегрузки
             if func_name in global_func_names:
@@ -169,29 +186,32 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
                 if data["cfg"] is None and not data["errors"]:
                     # Функция существует логически, но пока "not defined"
                     # (нет CFG и нет ошибок) — можно попытаться принять
-                    # новую реализацию при выполнении пользовательского условия.
-                    
-                    # Дерево "старого" объявления/описания (если оно уже было)
-                    previous_tree = results_internal[func_name]['tree'].children[0].children[1]
-                    # Дерево текущего узла
-                    current_tree = node.children[0].children[1]
-                    if previous_tree != current_tree:
+                    # новую реализацию при выполнении условия.
+
+                    # previous_tree — дерево предыдущего объявления
+                    # current_tree  — дерево текущего объявления
+                    previous_subtree = previous_tree.children[0].children[1]
+                    current_subtree = current_tree.children[0].children[1]
+
+                    if not compare_treeviews(previous_subtree, current_subtree):
                         data["errors"].append(
                             f"Ошибка: попытка перегрузки функции '{func_name}' в файле '{file_path}'"
                         )
                         continue
-                    # если условие выполняется — не прерываем, даём пройти дальше
-                    # и построить CFG для новой реализации
+
+                    # Условие прошло — принимаем новую реализацию:
+                    data["tree"] = current_tree
                 else:
                     # Уже есть реализация (cfg != None) или были ошибки —
-                    # это точно попытка перегрузки
+                    # это точно перегрузка
                     data["errors"].append(
                         f"Ошибка: попытка перегрузки функции '{func_name}' в файле '{file_path}'"
                     )
                     continue
-
-            # Первое появление имени или допустимая "дореализация" сверху
-            global_func_names.add(func_name)
+            else:
+                # Первое появление имени функции
+                global_func_names.add(func_name)
+                data["tree"] = current_tree
 
             # Построение графа
             try:
@@ -202,21 +222,19 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
                     f"in file '{file_path}': {e}"
                 )
                 continue
+
             if cfg is None:
                 continue
-            # Ошибки парсинга графа
+
             for err in errors_graph:
                 data["errors"].append(f"{file_path}: {err}")
 
-            # Множество вызываемых функций
             for name in call_names:
                 clean_name = name.strip().strip('"')
                 if clean_name:
                     data["calls"].add(clean_name)
 
-            # Финальная обработка CFG и сохранение графа, если нужно
             cfg.remove_dangling_blocks()
-
             data["cfg"] = cfg
             if graph_dir is not None:
                 render_cfg(
