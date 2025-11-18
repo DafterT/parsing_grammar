@@ -32,10 +32,10 @@ class TreeViewNode:
     children: List["TreeViewNode"]
 
 
-def build_tree_view(root) -> TreeViewNode:
+def build_tree_view(root) -> tuple[TreeViewNode, list[str]]:
     """
-    Принимает корневой node парсера и возвращает дерево TreeViewNode,
-    структуру которого можно напечатать в том же виде, что и раньше.
+    Принимает корневой node парсера и возвращает кортеж:
+    (дерево TreeViewNode, список строк с описанием ошибок).
     """
 
     replace_names = {
@@ -57,7 +57,9 @@ def build_tree_view(root) -> TreeViewNode:
         "un_op",
         "builtin",
     }
-
+    
+    errors: list[str] = []
+    
     def _child_anc(anc_has_next: list[bool], is_last: bool) -> list[bool]:
         return [*anc_has_next, not is_last]
 
@@ -69,12 +71,11 @@ def build_tree_view(root) -> TreeViewNode:
         is_token = n.type in TOKEN_TYPES
 
         if getattr(n, "is_missing", False):
-            print(
-                f'Error: missing element "{n.type}" in end point {n.end_point}',
-                file=sys.stderr,
+            errors.append(
+                f'Error: missing element "{n.type}" in end point {n.end_point}'
             )
         if getattr(n, "is_error", False):
-            print(f"Error: incorrect in end point {n.end_point}", file=sys.stderr)
+            errors.append(f"Error: incorrect in end point {n.end_point}")
 
         if len(n.children) == 0:
             text = (
@@ -129,7 +130,7 @@ def build_tree_view(root) -> TreeViewNode:
 
         return TreeViewNode(label=label, node=n, children=children_view)
 
-    return _build(root, [], True)
+    return _build(root, [], True), errors
 
 
 def print_tree_view(

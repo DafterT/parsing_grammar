@@ -29,6 +29,5 @@ begin
         else
             b := 2;
     
-    
 end;
 

@@ -83,7 +83,7 @@ def parse_expr(expr: TreeViewNode) -> TreeViewNode:
         case 'call':
             return parse_call(inner)
         case _:
-            raise ValueError(f'Неизвестный вид expr: {inner.label}')
+            raise SyntaxError(f'Неизвестный вид expr: {inner.label}')
 
 def parse_place(node: TreeViewNode) -> TreeViewNode:
     # place

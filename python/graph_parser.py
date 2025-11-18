@@ -31,6 +31,7 @@ class CFG:
     """
     blocks: Dict[int, Block] = field(default_factory=dict)
     next_id: int = 0  # счётчик для выдачи свежих id
+    errors: List[str] = field(default_factory=list) 
 
     def new_block(self, label: str, tree: TreeViewNode = None) -> Block:
         """
@@ -107,14 +108,20 @@ def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
 
 
 def parce_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
-    if tree.label == 'expr':
-        updated_tree = parse_expr(tree)
-    else:
-        updated_tree = parse_expr(tree.children[0])
-    expr_id = graph.new_block(tree_view_to_str(updated_tree), updated_tree) # TODO: Изменить деревья
+    try:
+        if tree.label == 'expr':
+            updated_tree = parse_expr(tree)
+        else:
+            updated_tree = parse_expr(tree.children[0])
+        expr_id = graph.new_block(tree_view_to_str(updated_tree), updated_tree)
+    except ValueError as e:
+        error_msg = str(e)
+        graph.errors.append(error_msg)
+        expr_id = graph.new_block(f"ERROR: {error_msg}")
     
-    graph.add_edge(before, expr_id, label) # Подсоединили
+    graph.add_edge(before, expr_id, label)  # Подсоединили
     return expr_id
+
 
 def parce_if(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     """
@@ -177,6 +184,7 @@ def parce_break(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
     graph.add_edge(before, break_id, label)
     if end_cycle == None:
         raise SyntaxError(f"Error: break without cycle at {tree.node.end_point}")
+        return break_id
     return None
     
 def parce_statment(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
@@ -198,13 +206,13 @@ def parce_statment(tree: TreeViewNode, graph: CFG, before: Block, label: str = N
             print(tree.label)
             raise "Такого блока нет"
 
-def build_graph(tree: TreeViewNode):
+def build_graph(tree: TreeViewNode) -> Tuple[CFG, List[str]]:
     cfg = CFG()
     body = tree.children[0].children[-1]
     if body.label != 'body':
-        return None
+        return None, cfg.errors
     parce_block(body.children[0], cfg, None)
-    return cfg
+    return cfg, cfg.errors
 
 #######################################################################
 # RENDER
