@@ -14,9 +14,9 @@ def main():
     write_tree_view_to_file(view_root, f"{out_file_path}/my_tree")
 
     for indx, i in enumerate(view_root.children):
-        cfg, coll_names, errors_graph = build_graph(i)
+        cfg, call_names, errors_graph = build_graph(i)
         print('\r\n'.join(errors_graph))
-        print('\r\n'.join(coll_names))
+        print('\r\n'.join(call_names))
         render_cfg(cfg, filename=f"{out_file_path}/example_cfg_{indx}", fmt="svg")
         cfg.remove_dangling_blocks()
         render_cfg(cfg, filename=f"{out_file_path}/example_cfg_{indx}_rem", fmt="svg")
