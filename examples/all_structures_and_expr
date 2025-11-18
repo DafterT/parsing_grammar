@@ -1,6 +1,7 @@
 method hello_world()
 begin
-    true; false;
+    true; 
+    false;
     "asd";
     'a';
     0x123;
@@ -9,18 +10,17 @@ begin
     b + 3;
     asd;
     !g;
+    a[a,b,c];
+    hello_world();
     (3);
-    (ok := !false) * (x := 10) - 1;
-    a();
-    a[a,b,c()];
 
     if a then a;
     if a then a; else a;
     begin end;
-    begin begin end; begin end; end;
     while a do begin end;
-    repeat begin break; end; while a;
+    repeat begin end; while a;
     repeat begin end; until l;
+    repeat begin break; end; while a;
     
 
     if a then 
