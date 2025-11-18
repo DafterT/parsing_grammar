@@ -3,6 +3,10 @@ from typing import List, Dict, Optional, Tuple, Union
 from tree_parser import TreeViewNode, tree_view_to_str
 from graphviz import Digraph
 
+#######################################################################
+# DATA STRUCT
+#######################################################################
+
 @dataclass
 class Block:
     """
@@ -43,6 +47,45 @@ class CFG:
         """
         if dst is not None and src is not None:
             src.succs.append((dst.id, label))
+            
+    def remove_dangling_blocks(self, entry_id: int = 0, exit_id: int = 1) -> None:
+        """Удаляет все блоки, недостижимые из entry_id, оставляя entry/exit."""
+        reachable = set()
+        stack = [entry_id]
+
+        # DFS/BFS от входного блока
+        while stack:
+            b_id = stack.pop()
+            if b_id in reachable:
+                continue
+            block = self.blocks.get(b_id)
+            if block is None:
+                continue
+            reachable.add(b_id)
+            for succ_id, _ in block.succs:
+                if succ_id not in reachable:
+                    stack.append(succ_id)
+
+        # гарантируем, что выходной блок не потеряем
+        if exit_id in self.blocks:
+            reachable.add(exit_id)
+
+        # удаляем все недостижимые блоки
+        for b_id in list(self.blocks.keys()):
+            if b_id not in reachable:
+                del self.blocks[b_id]
+
+        # подчистим succs от ссылок на удалённые блоки
+        for block in self.blocks.values():
+            block.succs = [
+                (dst_id, lbl)
+                for (dst_id, lbl) in block.succs
+                if dst_id in self.blocks
+            ]
+
+#######################################################################
+# PARCER
+#######################################################################
 
 def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     """
@@ -52,12 +95,12 @@ def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
     [-1] ';'
     """
     begin_id = graph.new_block("begin")
+    end_id = graph.new_block("end") # Создали конец
     if before: # Подсоединили предыдущий к себе
         graph.add_edge(before, begin_id, label) 
     statment_id = begin_id
     for i in tree.children[1:-2]:
         statment_id = parce_statment(i, graph, statment_id, None, end_cycle)
-    end_id = graph.new_block("end") # Создали конец
     graph.add_edge(statment_id, end_id) # Подсоединили предыдущий к концу
     return end_id
 
@@ -156,6 +199,9 @@ def build_graph(tree: TreeViewNode):
     parce_block(body.children[0], cfg, None)
     return cfg
 
+#######################################################################
+# RENDER
+#######################################################################
 
 def cfg_to_graphviz(cfg: CFG,
                     graph_name: str = "CFG",

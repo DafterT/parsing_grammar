@@ -18,9 +18,9 @@ begin
     begin end;
     begin begin end; begin end; end;
     while a do begin end;
-    repeat begin end; while a;
+    repeat begin break; end; while a;
     repeat begin end; until l;
-    break;
+    
 
     if a then 
         if b then

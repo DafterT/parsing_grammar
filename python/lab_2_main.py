@@ -9,9 +9,11 @@ def main():
     view_root = build_tree_view(root)
     print_tree_view(view_root)
 
-    for i in view_root.children:
+    for indx, i in enumerate(view_root.children):
         cfg = build_graph(i)
-        render_cfg(cfg, filename="example_cfg", fmt="svg")
+        render_cfg(cfg, filename=f"{out_file_path}/example_cfg_{indx}", fmt="svg")
+        cfg.remove_dangling_blocks()
+        render_cfg(cfg, filename=f"{out_file_path}/example_cfg_{indx}_rem", fmt="svg")
 
 
 if __name__ == "__main__":
