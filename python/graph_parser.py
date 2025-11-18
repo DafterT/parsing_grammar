@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple, Union
 from tree_parser import TreeViewNode, tree_view_to_str
 from graphviz import Digraph
+from ast_generator import parse_expr
 
 #######################################################################
 # DATA STRUCT
@@ -104,8 +105,14 @@ def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
     graph.add_edge(statment_id, end_id) # Подсоединили предыдущий к концу
     return end_id
 
+
 def parce_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
-    expr_id = graph.new_block(tree_view_to_str(tree), tree) # TODO: Изменить деревья
+    if tree.label == 'expr':
+        updated_tree = parse_expr(tree)
+    else:
+        updated_tree = parse_expr(tree.children[0])
+    expr_id = graph.new_block(tree_view_to_str(updated_tree), updated_tree) # TODO: Изменить деревья
+    
     graph.add_edge(before, expr_id, label) # Подсоединили
     return expr_id
 

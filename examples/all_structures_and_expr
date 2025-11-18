@@ -1,17 +1,18 @@
 method hello_world()
 begin
-    b + 3;
-    !g;
-    (3);
-    a();
-    a[a,b,c];
-    asd;
     true; false;
     "asd";
     'a';
     0x123;
     0b1010;
     123;
+    b + 3;
+    asd;
+    !g;
+    (3);
+    (ok := !false) * (x := 10) - 1;
+    a();
+    a[a,b,c];
 
     if a then a;
     if a then a; else a;
@@ -24,11 +25,10 @@ begin
 
     if a then 
         if b then
-            a = 2;
+            a := a + 2;
         else
-            b = 2;
+            b := 2;
     
-    (ok := !false) * (x := 10) - 1;
-
+    
 end;
 
