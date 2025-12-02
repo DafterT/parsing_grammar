@@ -1,8 +1,8 @@
-method hello_world_2(a, b, c: int): int;
+method hello_world_2(a: bool, b: int, c: int): int;
 method c() 
 var a,b,c:int; d,e: array[] of array[] of int; begin end;
-method hello_world_2(a, b, c: int): int
-var a,b,c:int; d,e: array[] of array[] of array[] of bool; begin
+method hello_world_2(a: bool, b:int, c: int): int
+var y,s,p:int; d,e: array[] of array[] of array[] of bool; begin
     c(a, b, c);
     g();
 end;

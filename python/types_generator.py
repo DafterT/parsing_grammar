@@ -196,6 +196,30 @@ def get_args_dict(arg_nodes):
 
     return args_dict, errors
 
+def check_var_param_conflicts(funcs_vars, funcs_calls):
+    """
+    funcs_vars: { func_name: { var_name: (...) } }
+    funcs_calls: { func_name: { arg_name: (...) } }
+
+    Возвращает:
+      { func_name: [строки_ошибок] }
+    """
+    conflicts = {}
+
+    for func_name, vars_dict in funcs_vars.items():
+        params_dict = funcs_calls.get(func_name, {}) or {}
+        var_names = set(vars_dict.keys())
+        param_names = set(params_dict.keys())
+
+        intersect = var_names & param_names
+        if intersect:
+            names_str = ", ".join(sorted(intersect))
+            msg = (
+                f"имена параметров и локальных переменных совпадают: {names_str}"
+            )
+            conflicts[func_name] = [msg]
+
+    return conflicts
 
 def process_type(not_typed_data: dict):
     global_errors = {}
@@ -221,9 +245,16 @@ def process_type(not_typed_data: dict):
         if error:
             global_errors[func_name] = global_errors.get(func_name, []) + error
         funcs_calls[func_name] = func_call
-        
+    
     # Если есть ошибки, вернем
     if global_errors:
+        return None, global_errors
+    
+    # Проверим конфликты
+    conflicts = check_var_param_conflicts(funcs_vars, funcs_calls)
+    if conflicts:
+        for func_name, msgs in conflicts.items():
+            global_errors[func_name] = global_errors.get(func_name, []) + msgs
         return None, global_errors
     
     # Типы данных в листьях
