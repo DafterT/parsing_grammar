@@ -4,6 +4,7 @@ from file_parser_to_graph import (
     render_call_graph,
     write_errors_report,
 )
+from types_generator import process_type
 from pathlib import Path
 
 def main():
@@ -17,8 +18,10 @@ def main():
 
     errors_report_path = call_graph_base.with_suffix(".errors.txt")
     ready_asseble = write_errors_report(result, filename=str(errors_report_path))
-    if not ready_asseble:
+    if ready_asseble:
         return
+    typed_result, errors = process_type(result)
+    print(typed_result, errors)
 
 
 if __name__ == "__main__":
