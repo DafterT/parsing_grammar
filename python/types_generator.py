@@ -101,6 +101,9 @@ def get_dict_var(nodes):
 
         # записываем результат для всех имён
         for name in names:
+            if name in types_dict:
+                errors.append(f"повторное объявление переменной '{name}'")
+                continue
             types_dict[name] = (type_str, type_node)
 
         if error_for_this_decl is not None:
@@ -153,6 +156,7 @@ def get_args_dict(arg_nodes):
     """
     args_dict: dict[str, tuple[str | None, object | None]] = {}
     errors: list[str] = []
+
     # Берём только узлы argDef, запятые игнорируем
     for arg in arg_nodes:
         if arg.label != 'argDef':
@@ -170,7 +174,6 @@ def get_args_dict(arg_nodes):
         has_colon = any(c.label == '":"'
                         for c in arg.children)
         if has_colon:
-            # ожидаем, что внутри argDef есть узел typeRef
             type_child = [c for c in arg.children if c.label == 'typeRef']
             if type_child:
                 type_node = type_child[0]
@@ -182,8 +185,11 @@ def get_args_dict(arg_nodes):
         else:
             error_msg = "тип не задан"
 
-        # 3. записываем результат, порядок вставки сохранится
-        args_dict[name] = (type_str, type_node)
+        # 3. проверка на дубликат аргумента
+        if name in args_dict:
+            errors.append(f"повторное объявление аргумента '{name}'")
+        else:
+            args_dict[name] = (type_str, type_node)
 
         if error_msg is not None:
             errors.append(f"{error_msg} (аргумент: {name})")
