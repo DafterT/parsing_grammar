@@ -7,9 +7,7 @@ from file_parser_to_graph import (
 from pathlib import Path
 
 def main():
-    # Теперь parse_cli возвращает набор файлов, а не один
     grammar_dir, lang_name, file_paths, out_dir, lib_path = parse_cli()
-    # Запускаем обработку. Результат можно при желании как-то вывести/логировать.
     result = analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=out_dir)
     
     out_dir_path = Path(out_dir)
