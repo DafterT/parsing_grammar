@@ -206,10 +206,13 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
     }
     return result
 
-def write_errors_report(result, filename: str) -> None:
+def write_errors_report(result, filename: str) -> bool:
     """
     Пишет человекочитаемый отчёт об ошибках в файл filename.
     Файл создаётся только если действительно есть какие-то ошибки/проблемы.
+    
+    Returns:
+        bool: True, если ошибки были найдены и записаны в файл. False, если ошибок нет.
     """
     lines: list[str] = []
 
@@ -281,14 +284,16 @@ def write_errors_report(result, filename: str) -> None:
         for fname in missing_funcs:
             lines.append(f"  - {fname}")
 
-    # Если вообще нечего писать — не создаём файл
+    # Если вообще нечего писать — не создаём файл и возвращаем False
     if not lines:
-        return
+        return False
 
     path = Path(filename)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
-        f.write("\n".join(lines) + "\n")
+        f.write("\n".join(lines))
+    
+    return True
 
 
 def calls_to_graphviz(result,

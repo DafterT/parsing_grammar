@@ -16,8 +16,10 @@ def main():
     render_call_graph(result, filename=str(call_graph_base), fmt="svg")
 
     errors_report_path = call_graph_base.with_suffix(".errors.txt")
-    write_errors_report(result, filename=str(errors_report_path))
-    
+    ready_asseble = write_errors_report(result, filename=str(errors_report_path))
+    if not ready_asseble:
+        return
+
 
 if __name__ == "__main__":
     main()
