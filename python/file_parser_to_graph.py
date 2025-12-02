@@ -11,93 +11,50 @@ import argparse
 
 def parse_cli():
     """
-    Поддерживаются два режима запуска:
+    Запуск с уже собранной библиотекой:
+    python main.py path/to/parser.dll input1.txt [input2.txt ...] output_dir
 
-    1) Уже собранная библиотека:
-       python main.py --lib path/to/parser.dll [--lang foo] input1.txt [input2.txt ...] output_dir
-
-       --lib  : путь к .dll/.so/.dylib
-       --lang : имя языка (foo => функция tree_sitter_foo). Если не указано,
-                имя берётся из имени файла библиотеки.
-
-    2) Грамматика-проект (нужно собрать библиотеку):
-       python main.py path/to/grammar foo input1.txt [input2.txt ...] output_dir
-
-       grammar_dir : путь к папке с grammar.js
-       lang_name   : имя языка (foo => функция tree_sitter_foo)
+    - Первый аргумент: путь к .dll/.so/.dylib
+    - Далее: один или несколько входных файлов
+    - Последний аргумент: выходная директория
+    
+    Имя языка автоматически извлекается из имени файла библиотеки.
     """
-    p = argparse.ArgumentParser(description="Сборка и запуск tree-sitter парсера")
+    p = argparse.ArgumentParser(description="Запуск tree-sitter парсера")
 
-    # Общие опции
     p.add_argument(
-        "--lib",
-        dest="lib_path",
-        help=(
-            "Путь к уже скомпилированной tree-sitter библиотеке (.so/.dll/.dylib). "
-            "В этом режиме grammar_dir и lang_name позиционно не задаются."
-        ),
+        "lib_path",
+        help="Путь к скомпилированной tree-sitter библиотеке (.so/.dll/.dylib)"
     )
-    p.add_argument(
-        "--lang",
-        dest="lib_lang_name",
-        help=(
-            "Имя языка при использовании --lib (например, 'foo' для tree_sitter_foo). "
-            "Если не указано, будет выведено из имени файла библиотеки."
-        ),
-    )
-
-    # Остаток позиционных аргументов.
-    # В lib-режиме:      file1 [file2 ...] out_dir
-    # В grammar-режиме:  grammar_dir lang_name file1 [file2 ...] out_dir
+    
     p.add_argument(
         "rest",
         nargs="+",
-        help=(
-            "Режим 1 (--lib): file1 [file2 ...] out_dir\n"
-            "Режим 2 (grammar): grammar_dir lang_name file1 [file2 ...] out_dir"
-        ),
+        help="Входные файлы и выходная директория: file1 [file2 ...] out_dir"
     )
 
     a = p.parse_args()
 
-    # Режим 1: уже собранная библиотека
-    if a.lib_path is not None:
-        if len(a.rest) < 2:
-            p.error(
-                "В режиме --lib нужно указать хотя бы один входной файл и путь к выходной папке.\n"
-                "Пример: python main.py --lib path/to/lib.so input1.c [input2.c ...] out_dir"
-            )
+    # Проверка минимального количества аргументов
+    if len(a.rest) < 2:
+        p.error(
+            "Необходимо указать хотя бы один входной файл и выходную директорию.\n"
+            "Пример: python main.py path/to/lib.dll input1.c [input2.c ...] out_dir"
+        )
 
-        file_paths = a.rest[:-1]
-        out_dir = a.rest[-1]
+    lib_path = a.lib_path
+    file_paths = a.rest[:-1]
+    out_dir = a.rest[-1]
 
-        grammar_dir = None
-        lib_path = a.lib_path
+    # Извлекаем имя языка из имени файла библиотеки
+    stem = Path(lib_path).stem  # e.g. libfoo -> libfoo, foo -> foo
+    lang_name = stem[3:] if stem.startswith("lib") else stem
 
-        # Имя языка: сначала берём из --lang, иначе вытаскиваем из имени файла
-        if a.lib_lang_name:
-            lang_name = a.lib_lang_name
-        else:
-            stem = Path(a.lib_path).stem  # e.g. libfoo -> libfoo, foo -> foo
-            lang_name = stem[3:] if stem.startswith("lib") else stem
-
-    # Режим 2: проект с грамматикой (сборка)
-    else:
-        # Нужны минимум: grammar_dir, lang_name, один файл и out_dir
-        if len(a.rest) < 4:
-            p.error(
-                "В режиме сборки из грамматики нужно указать "
-                "grammar_dir lang_name хотя бы один входной файл и выходную папку.\n"
-                "Пример: python main.py path/to/grammar foo input1.txt [input2.txt ...] out_dir"
-            )
-
-        grammar_dir = a.rest[0]
-        lang_name = a.rest[1]
-        file_paths = a.rest[2:-1]
-        out_dir = a.rest[-1]
-        lib_path = None
+    # Для совместимости с остальным кодом
+    grammar_dir = None
 
     return grammar_dir, lang_name, file_paths, out_dir, lib_path
+
 
 def compare_treeviews(previous_subtree: TreeViewNode | None,
                       current_subtree: TreeViewNode | None) -> bool:

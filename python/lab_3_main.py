@@ -17,7 +17,7 @@ def main():
 
     errors_report_path = call_graph_base.with_suffix(".errors.txt")
     write_errors_report(result, filename=str(errors_report_path))
-
+    
 
 if __name__ == "__main__":
     main()
