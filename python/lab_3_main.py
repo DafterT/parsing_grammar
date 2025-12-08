@@ -17,8 +17,8 @@ def main():
     render_call_graph(result, filename=str(call_graph_base), fmt="svg")
 
     errors_report_path = call_graph_base.with_suffix(".errors.txt")
-    ready_asseble = write_errors_report(result, filename=str(errors_report_path))
-    if ready_asseble:
+    ready_assemble = write_errors_report(result, filename=str(errors_report_path))
+    if ready_assemble:
         return
     typed_result, errors = process_type(result)
     print(typed_result, errors)

@@ -87,13 +87,13 @@ class CFG:
             ]
 
 #######################################################################
-# PARCER
+# PARSER
 #######################################################################
 
-def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
+def parse_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     """
     [0] 'begin'
-    [1->-2] statment*
+    [1->-2] statement*
     [-2] 'end'
     [-1] ';'
     """
@@ -101,10 +101,10 @@ def parce_block(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
     end_id = graph.new_block("end") # Создали конец
     if before: # Подсоединили предыдущий к себе
         graph.add_edge(before, begin_id, label) 
-    statment_id = begin_id
+    statement_id = begin_id
     for i in tree.children[1:-2]:
-        statment_id = parce_statment(i, graph, statment_id, None, end_cycle)
-    graph.add_edge(statment_id, end_id) # Подсоединили предыдущий к концу
+        statement_id = parse_statement(i, graph, statement_id, None, end_cycle)
+    graph.add_edge(statement_id, end_id) # Подсоединили предыдущий к концу
     return end_id
 
 def collect_call_names(node: TreeViewNode, cfg: CFG) -> None:
@@ -120,7 +120,7 @@ def collect_call_names(node: TreeViewNode, cfg: CFG) -> None:
     for child in getattr(node, "children", []) or []:
         collect_call_names(child, cfg)
 
-def parce_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
+def parse_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     try:
         if tree.label == 'expr':
             updated_tree = parse_expr(tree)
@@ -137,62 +137,62 @@ def parce_expression(tree: TreeViewNode, graph: CFG, before: Block, label: str =
     return expr_id
 
 
-def parce_if(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
+def parse_if(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     """
     [0] 'if'
     [1] expr
     [2] 'then'
-    [3] statment
+    [3] statement
     ???
     [4] 'else'
-    [5] statment
+    [5] statement
     """
-    expr_id = parce_expression(tree.children[1], graph, before, label)
-    statment_id = parce_statment(tree.children[3], graph, expr_id, 'True', end_cycle)
+    expr_id = parse_expression(tree.children[1], graph, before, label)
+    statement_id = parse_statement(tree.children[3], graph, expr_id, 'True', end_cycle)
     end_if = graph.new_block('end_if')
-    graph.add_edge(statment_id, end_if)
+    graph.add_edge(statement_id, end_if)
     if len(tree.children) == 4:
         graph.add_edge(expr_id, end_if, 'False') # End if
     else:
-        statment_id = parce_statment(tree.children[5], graph, expr_id, 'False', end_cycle)
-        graph.add_edge(statment_id, end_if) # End if
+        statement_id = parse_statement(tree.children[5], graph, expr_id, 'False', end_cycle)
+        graph.add_edge(statement_id, end_if) # End if
     return end_if
     
-def parce_while(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
+def parse_while(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     """
     [0] 'while'
     [1] expr
     [2] 'do'
-    [3] statment
+    [3] statement
     [4] ';'
     """
-    expr_id = parce_expression(tree.children[1], graph, before, label)
+    expr_id = parse_expression(tree.children[1], graph, before, label)
     end_while = graph.new_block('end_while')
-    statment_id = parce_statment(tree.children[3], graph, expr_id, 'True', end_while)
+    statement_id = parse_statement(tree.children[3], graph, expr_id, 'True', end_while)
     
-    graph.add_edge(statment_id, expr_id) 
+    graph.add_edge(statement_id, expr_id) 
     graph.add_edge(expr_id, end_while, 'false') 
     return end_while
 
-def parce_do(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
+def parse_do(tree: TreeViewNode, graph: CFG, before: Block, label: str = None):
     """
     [0] 'repeat'
-    [1] statment
-    [2] 'while' / 'untill'
+    [1] statement
+    [2] 'while' / 'until'
     [3] expr
     [4] ';'
     """
     start_repeat = graph.new_block('start_repeat')
     end_repeat = graph.new_block('end_repeat')
-    statment_id = parce_statment(tree.children[1], graph, start_repeat, label, end_repeat)
-    expr_id = parce_expression(tree.children[3], graph, statment_id)
+    statement_id = parse_statement(tree.children[1], graph, start_repeat, label, end_repeat)
+    expr_id = parse_expression(tree.children[3], graph, statement_id)
     
     graph.add_edge(before, start_repeat) 
     graph.add_edge(expr_id, start_repeat, 'true' if tree.children[2].label == '"while"' else 'false') 
     graph.add_edge(expr_id, end_repeat, 'true' if tree.children[2].label != '"while"' else 'false') 
     return end_repeat
 
-def parce_break(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
+def parse_break(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     break_id = graph.new_block('break')
     graph.add_edge(break_id, end_cycle)
     graph.add_edge(before, break_id, label)
@@ -200,21 +200,21 @@ def parce_break(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
         raise SyntaxError(f"Error: break without cycle at {tree.node.end_point}")
     return None
     
-def parce_statment(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
+def parse_statement(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
     tree = tree.children[0]
     match tree.label:
         case 'block':
-            return parce_block(tree, graph, before, label, end_cycle)
+            return parse_block(tree, graph, before, label, end_cycle)
         case 'expression':
-            return parce_expression(tree, graph, before, label)
+            return parse_expression(tree, graph, before, label)
         case 'if':
-            return parce_if(tree, graph, before, label, end_cycle)
+            return parse_if(tree, graph, before, label, end_cycle)
         case 'while':
-            return parce_while(tree, graph, before, label)
+            return parse_while(tree, graph, before, label)
         case 'do':
-            return parce_do(tree, graph, before, label)
+            return parse_do(tree, graph, before, label)
         case 'break':
-            return parce_break(tree, graph, before, label, end_cycle)
+            return parse_break(tree, graph, before, label, end_cycle)
         case _:
             print(tree.label)
             raise "Такого блока нет"
@@ -224,7 +224,7 @@ def build_graph(tree: TreeViewNode) -> Tuple[CFG, List[str]]:
     body = tree.children[0].children[-1]
     if body.label != 'body':
         return None, None, None
-    parce_block(body.children[-1], cfg, None)
+    parse_block(body.children[-1], cfg, None)
     return cfg, cfg.call_names, cfg.errors
 
 
