@@ -1,9 +1,10 @@
 method hello_world_2(a: bool, b: int, c: int): int;
 method c() 
-var a,b,c:int; d,e: array[] of array[] of int; begin end;
+var a,b,c:int; d,e: array[] of int; begin end;
 method hello_world_2(a: bool, b:int, c: int): int
-var y,s,p:int; d,e: array[] of array[] of array[] of bool; begin
+var y,s,p:int; d,e: array[] of char; begin
     c(a, b, c);
     g();
+    int(5);
 end;
 method g() var begin end; 

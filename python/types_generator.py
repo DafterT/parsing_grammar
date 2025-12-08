@@ -1,3 +1,5 @@
+from file_parser_to_graph import BUILTIN_TYPES
+
 def get_type_from_typeRef(type_ref_node):
     """
     type_ref_node — узел TreeViewNode(label='typeRef', ...)
@@ -21,9 +23,9 @@ def get_type_from_typeRef(type_ref_node):
         return token.label.strip('"'), None
 
     # custom: identifier — считаем ошибкой (классы не поддерживаются)
+    # custom сам является identifier (не содержит вложенный identifier)
     if kind.label == 'custom':
-        ident = next(c for c in kind.children if c.label == 'identifier')
-        token = ident.children[0]
+        token = kind.children[0]
         type_name = token.label.strip('"')
         return type_name, "классы не поддерживаются"
 
@@ -43,6 +45,18 @@ def get_type_from_typeRef(type_ref_node):
 
         # находим вложенный typeRef (тип элементов массива)
         inner_type_ref = next(c for c in kind.children if c.label == 'typeRef')
+        inner_kind = inner_type_ref.children[0]
+
+        # array of array — считаем многомерным
+        if inner_kind.label == 'array':
+            return None, "многомерные массивы не поддерживаются"
+
+        # array of string — тоже запрещаем (string трактуем как массив символов)
+        if inner_kind.label == 'builtin':
+            inner_token = inner_kind.children[0].label.strip('"').lower()
+            if inner_token == 'string':
+                return None, "массивы строк не поддерживаются"
+
         inner_str, inner_err = get_type_from_typeRef(inner_type_ref)
         if inner_err is not None:
             return None, inner_err
@@ -257,10 +271,31 @@ def process_type(not_typed_data: dict):
             global_errors[func_name] = global_errors.get(func_name, []) + msgs
         return None, global_errors
     
+    # Добавляем встроенные функции в funcs_returns и funcs_calls, 
+    # чтобы при анализе тел функций они считались корректно объявленными.
+
+    # 1. read_byte(): byte
+    funcs_returns['read_byte'] = ('byte', None)
+    funcs_calls['read_byte'] = {}
+
+    # 2. send_byte(b: byte): void
+    funcs_returns['send_byte'] = (None, None)
+    funcs_calls['send_byte'] = {'byte': ('byte', None)}
+
+    # 3. Конструкторы массивов: int(size) -> array[] of int, и т.д.
+    #    Аргумент назовём 'size', тип 'int' (или любой числовой).
+    for t_name in BUILTIN_TYPES:
+        # returns: array[] of <t_name>
+        ret_type = f"array[] of {t_name}"
+        funcs_returns[t_name] = (ret_type, None)
+        
+        # args: size: int
+        funcs_calls[t_name] = {'size': ('int', None)}
+
     # Типы данных в листьях
     for func_name, (references, _, cfg, tree) in not_typed_data.items():
         for block in cfg.blocks.values():
             pass
             
         
-    return None, global_errors # TODO
+    return funcs_vars, global_errors # TODO

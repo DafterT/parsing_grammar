@@ -56,6 +56,14 @@ def parse_cli():
     return grammar_dir, lang_name, file_paths, out_dir, lib_path
 
 
+BUILTIN_TYPES = {
+    'bool', 'byte', 'int', 'uint', 'long', 'ulong', 'char'
+}
+BUILTIN_FUNCTIONS = {
+    'read_byte', 'send_byte', *BUILTIN_TYPES
+}
+
+
 def compare_treeviews(previous_subtree: TreeViewNode | None,
                       current_subtree: TreeViewNode | None) -> bool:
     """
@@ -278,7 +286,7 @@ def write_errors_report(result, filename: str) -> bool:
     for calls, _errors, _cfg, _tree in func_entries.values():
         called_funcs |= set(calls)
 
-    missing_funcs = sorted(called_funcs - defined_names)
+    missing_funcs = sorted(called_funcs - defined_names - BUILTIN_FUNCTIONS)
     if missing_funcs:
         lines.append("\n=== REFERENCED BUT NOT DEFINED ===")
         for fname in missing_funcs:
@@ -336,7 +344,10 @@ def calls_to_graphviz(result,
                 status = "NOT DEFINED"
         else:
             # Функция только вызывается, но нигде не объявлена
-            status = "NOT DEFINED"
+            if fname in BUILTIN_FUNCTIONS:
+                status = "BUILTIN"
+            else:
+                status = "NOT DEFINED"
 
         if status:
             label = f"{fname}\n{status}"
