@@ -140,19 +140,53 @@ def parse_binary(node: TreeViewNode) -> TreeViewNode:
 
     # Спец-случай: присваивание
     if op == ':=':
-        # Разрешаем СТРОГО только place, ничего больше
-        name = extract_place_name_from_expr(
-            left_expr,
-            where='Левая часть присваивания'
-        )
-
         rhs_ir = parse_expr(right_expr)
-
-        # store(a) -> <rhs_ir>
-        return TreeViewNode(
-            label=f'store({name})',
-            node=None,
-            children=[rhs_ir],
+        
+        # Проверяем, что слева: place или indexer
+        if left_expr.label != 'expr' or not left_expr.children:
+            raise ValueError('Левая часть присваивания: ожидается expr')
+        
+        inner = left_expr.children[0]
+        
+        # Случай 1: простая переменная (place)
+        if inner.label == 'place':
+            name = strip_quotes(inner.children[0].label)
+            return TreeViewNode(
+                label=f'store({name})',
+                node=None,
+                children=[rhs_ir],
+            )
+        
+        # Случай 2: индексатор (arr[idx] := val)
+        if inner.label == 'indexer':
+            # indexer: expr '[' list<expr> ']'
+            base_expr = inner.children[0]
+            list_node = inner.children[2]
+            
+            # База должна быть place
+            base_name = extract_place_name_from_expr(
+                base_expr,
+                where='База индексатора в присваивании'
+            )
+            
+            # Парсим индексы
+            indices_ir = parse_expr_list(list_node)
+            
+            if not indices_ir:
+                raise ValueError('Индексатор в присваивании без индексов')
+            
+            # Создаём store_at(arr) с детьми [idx, value]
+            # Для многомерных массивов - последовательно
+            # store_at(arr)[idx1, idx2, ..., value]
+            return TreeViewNode(
+                label=f'store_at({base_name})',
+                node=None,
+                children=[*indices_ir, rhs_ir],
+            )
+        
+        raise ValueError(
+            f'Левая часть присваивания: ожидается переменная или индексатор, '
+            f'а не {inner.label!r}'
         )
 
     # Обычный бинарный оператор: +, -, *, /, ...

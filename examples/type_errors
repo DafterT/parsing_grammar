@@ -1,0 +1,108 @@
+method test_int_uint_conflict()
+var a: int; b: uint;
+begin
+    a := b;
+    a := a + b;
+end;
+
+method test_int_long_conflict()
+var a: int; b: long;
+begin
+    a := b;
+    a := a + b;
+end;
+
+method test_uint_ulong_conflict()
+var a: uint; b: ulong;
+begin
+    a := b;
+    a := a * b;
+end;
+
+method test_byte_int_conflict()
+var a: byte; b: int;
+begin
+    a := b;
+    a := a + b;
+end;
+
+method test_comparison_type_mismatch()
+var a: int; b: uint; c: bool;
+begin
+    c := a > b;
+    c := a = b;
+end;
+
+method helper_int(x: int, y: int): int
+var r: int;
+begin
+    r := x + y;
+end;
+
+method helper_uint(x: uint): uint
+var r: uint;
+begin
+    r := x + 1;
+end;
+
+method helper_two_args(a: int, b: uint): int
+var r: int;
+begin
+    r := a;
+end;
+
+method test_call_wrong_arg_type()
+var a: uint; b: uint; res: int;
+begin
+    res := helper_int(a, b);
+end;
+
+method test_call_wrong_arg_count()
+var a: int; b: int; c: int; res: int;
+begin
+    res := helper_int(a, b, c);
+end;
+
+method test_call_missing_args()
+var a: int; res: int;
+begin
+    res := helper_int(a);
+end;
+
+method test_call_mixed_types()
+var a: int; b: uint; res: int;
+begin
+    res := helper_two_args(b, a);
+end;
+
+method test_call_uint_with_int()
+var a: int; res: uint;
+begin
+    res := helper_uint(a);
+end;
+
+method test_array_wrong_element_type()
+var arr: array[] of int; idx: int; val: uint;
+begin
+    arr[idx] := val;
+end;
+
+method test_array_wrong_index_type()
+var arr: array[] of int; idx: uint; val: int;
+begin
+    val := arr[idx];
+end;
+
+method test_logical_with_int()
+var a: int; b: int; c: bool;
+begin
+    c := a && b;
+    c := !a;
+end;
+
+method test_bitwise_with_bool()
+var a: bool; b: bool; c: bool;
+begin
+    c := a | b;
+    c := ~a;
+end;

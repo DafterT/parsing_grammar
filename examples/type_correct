@@ -1,0 +1,224 @@
+method test_int_arithmetic()
+var a: int; b: int; c: int;
+begin
+    a := b + c;
+    a := b - c;
+    a := b * c;
+    a := b / c;
+    a := b % c;
+end;
+
+method test_uint_arithmetic()
+var a: uint; b: uint; c: uint;
+begin
+    a := b + c;
+    a := b - c;
+    a := b * c;
+    a := b / c;
+    a := b % c;
+end;
+
+method test_long_arithmetic()
+var a: long; b: long; c: long;
+begin
+    a := b + c;
+    a := b - c;
+    a := b * c;
+end;
+
+method test_ulong_arithmetic()
+var a: ulong; b: ulong; c: ulong;
+begin
+    a := b + c;
+    a := b * c;
+    a := b / c;
+end;
+
+method test_byte_arithmetic()
+var a: byte; b: byte; c: byte;
+begin
+    a := b + c;
+    a := b - c;
+    a := b * c;
+end;
+
+method test_int_bitwise()
+var x: int; y: int; z: int;
+begin
+    x := y | z;
+    x := y & z;
+    x := y ^ z;
+    x := y << z;
+    x := y >> z;
+    x := ~y;
+end;
+
+method test_uint_bitwise()
+var x: uint; y: uint; z: uint;
+begin
+    x := y | z;
+    x := y & z;
+    x := y ^ z;
+    x := ~y;
+end;
+
+method test_byte_bitwise()
+var x: byte; y: byte; z: byte;
+begin
+    x := y | z;
+    x := y & z;
+    x := ~y;
+end;
+
+method test_logical()
+var flag1: bool; flag2: bool; result: bool;
+begin
+    result := flag1 || flag2;
+    result := flag1 && flag2;
+    result := !flag1;
+end;
+
+method test_int_comparison()
+var a: int; b: int; result: bool;
+begin
+    result := a = b;
+    result := a != b;
+    result := a > b;
+    result := a >= b;
+    result := a < b;
+    result := a <= b;
+end;
+
+method test_uint_comparison()
+var a: uint; b: uint; result: bool;
+begin
+    result := a = b;
+    result := a != b;
+    result := a > b;
+    result := a < b;
+end;
+
+method test_char_comparison()
+var a: char; b: char; result: bool;
+begin
+    result := a = b;
+    result := a != b;
+end;
+
+method test_int_array()
+var arr: array[] of int; idx: int; val: int;
+begin
+    arr := int(10);
+    val := arr[idx];
+    arr[idx] := val + 1;
+end;
+
+method test_uint_array()
+var arr: array[] of uint; idx: int; val: uint;
+begin
+    arr := uint(20);
+    val := arr[idx];
+    arr[idx] := val + 1;
+end;
+
+method test_byte_array()
+var arr: array[] of byte; idx: int; val: byte;
+begin
+    arr := byte(256);
+    val := arr[idx];
+    arr[idx] := val + 1;
+end;
+
+method test_char_array()
+var arr: array[] of char; idx: int; val: char;
+begin
+    arr := char(100);
+    val := arr[idx];
+    arr[idx] := 'x';
+end;
+
+method add_ints(x: int, y: int): int
+var sum: int;
+begin
+    sum := x + y;
+end;
+
+method add_uints(x: uint, y: uint): uint
+var sum: uint;
+begin
+    sum := x + y;
+end;
+
+method add_longs(x: long, y: long): long
+var sum: long;
+begin
+    sum := x + y;
+end;
+
+method test_call_int()
+var a: int; b: int; res: int;
+begin
+    res := add_ints(a, b);
+end;
+
+method test_call_uint()
+var a: uint; b: uint; res: uint;
+begin
+    res := add_uints(a, b);
+end;
+
+method test_call_long()
+var a: long; b: long; res: long;
+begin
+    res := add_longs(a, b);
+end;
+
+method test_literals()
+var i: int; b: bool; c: char; s: string;
+begin
+    i := 42;
+    i := 0xFF;
+    i := 0b1010;
+    b := true;
+    b := false;
+    c := 'x';
+    s := "hello";
+end;
+
+method test_nested_expr()
+var a: int; b: int; c: int; d: int;
+begin
+    d := (a + b) * (c - a);
+    d := a + b * c;
+end;
+
+method test_literals_auto_type()
+var i: int; u: uint; l: long; ul: ulong; b: byte;
+begin
+    i := 42;
+    i := i + 1;
+    i := 1 + i;
+    
+    u := 100;
+    u := u + 1;
+    u := 1 + u;
+    
+    l := 1000;
+    l := l + 1;
+    l := 1 + l;
+    
+    ul := 10000;
+    ul := ul + 1;
+    ul := 1 + ul;
+    
+    b := 255;
+    b := b + 1;
+    b := 1 + b;
+end;
+
+method test_generated_functions()
+var i: byte;
+begin
+    i := read_byte();
+    send_byte(i);
+end;

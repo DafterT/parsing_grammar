@@ -25,11 +25,13 @@ class TreeViewNode:
     label  — то, что раньше писалось в строку (identifier, "(", "hello", list<argDef> (empty), ...).
     node   — исходный node из парсера (для "настоящих" узлов); для синтетических узлов (empty) — None.
     children — потомки в отображаемом дереве.
+    type   — тип данных узла (заполняется при типизации).
     """
 
     label: str
     node: Any | None
     children: List["TreeViewNode"]
+    type: str | None = None
 
 
 def build_tree_view(root) -> tuple[TreeViewNode, list[str]]:

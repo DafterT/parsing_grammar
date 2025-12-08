@@ -1,4 +1,5 @@
-from file_parser_to_graph import BUILTIN_TYPES
+from file_parser_to_graph import BUILTIN_TYPES, BUILTIN_FUNCTIONS
+from type_checker import TypeChecker, check_all_functions, format_type_errors
 
 def get_type_from_typeRef(type_ref_node):
     """
@@ -242,24 +243,67 @@ def process_type(not_typed_data: dict):
     funcs_vars = {}
     # Типы данных функций
     for func_name, (references, _, cfg, tree) in not_typed_data.items():
+        # Пропускаем псевдо-узлы файлов
+        if func_name.startswith('<file:'):
+            continue
+        
+        # Пропускаем функции без тела (только объявления)
+        if cfg is None:
+            continue
+            
         # Тип данных, возвращаемый функцией
         func_type, error = get_func_returns_type(tree)
         if error:
             global_errors[func_name] = [error]
         funcs_returns[func_name] = func_type
-        # Типы данных, в самих функциях
-        types = tree.children[0].children[2].children[1:-1]
-        dict_var, error = get_dict_var(types)
-        if error:
-            global_errors[func_name] = global_errors.get(func_name, []) + error
-        funcs_vars[func_name] = dict_var
-        # Типы данных, передаваемые в функции
-        arg_nodes = tree.children[0].children[1].children[2].children
-        func_call, error = get_args_dict(arg_nodes)
+        
+        # Типы данных локальных переменных функции
+        # tree -> funcDef -> [method, funcSignature, body]
+        func_def = tree.children[0]
+        body_node = func_def.children[2] if len(func_def.children) > 2 else None
+        
+        if body_node and body_node.label == 'body':
+            # body -> [var?, list<var_decl>, block]
+            # Переменные находятся между первым элементом и последним (block)
+            types = body_node.children[1:-1]
+            dict_var, error = get_dict_var(types)
+            if error:
+                global_errors[func_name] = global_errors.get(func_name, []) + error
+            funcs_vars[func_name] = dict_var
+        else:
+            funcs_vars[func_name] = {}
+        
+        # Типы данных аргументов функции
+        func_signature = func_def.children[1]
+        # funcSignature -> [identifier, '(', list_argDef?, ')', (':' typeRef)?]
+        arg_list_node = None
+        for child in func_signature.children:
+            if child.label == 'list<argDef>':
+                arg_list_node = child
+                break
+        
+        if arg_list_node:
+            func_call, error = get_args_dict(arg_list_node.children)
+        else:
+            func_call, error = {}, []
+            
         if error:
             global_errors[func_name] = global_errors.get(func_name, []) + error
         funcs_calls[func_name] = func_call
     
+    # Проверяем, что пользователь не объявил функции с именами встроенных
+    user_func_names = {
+        name for name in funcs_returns.keys() if not name.startswith('<file:')
+    }
+    reserved_conflicts = sorted(user_func_names & BUILTIN_FUNCTIONS)
+    if reserved_conflicts:
+        for name in reserved_conflicts:
+            msg = (
+                f"имя функции '{name}' зарезервировано для встроенной функции "
+                "и не может быть переопределено"
+            )
+            global_errors[name] = global_errors.get(name, []) + [msg]
+
     # Если есть ошибки, вернем
     if global_errors:
         return None, global_errors
@@ -272,18 +316,15 @@ def process_type(not_typed_data: dict):
         return None, global_errors
     
     # Добавляем встроенные функции в funcs_returns и funcs_calls, 
-    # чтобы при анализе тел функций они считались корректно объявленными.
-
     # 1. read_byte(): byte
     funcs_returns['read_byte'] = ('byte', None)
     funcs_calls['read_byte'] = {}
 
     # 2. send_byte(b: byte): void
     funcs_returns['send_byte'] = (None, None)
-    funcs_calls['send_byte'] = {'byte': ('byte', None)}
+    funcs_calls['send_byte'] = {'b': ('byte', None)}
 
     # 3. Конструкторы массивов: int(size) -> array[] of int, и т.д.
-    #    Аргумент назовём 'size', тип 'int' (или любой числовой).
     for t_name in BUILTIN_TYPES:
         # returns: array[] of <t_name>
         ret_type = f"array[] of {t_name}"
@@ -292,10 +333,25 @@ def process_type(not_typed_data: dict):
         # args: size: int
         funcs_calls[t_name] = {'size': ('int', None)}
 
-    # Типы данных в листьях
-    for func_name, (references, _, cfg, tree) in not_typed_data.items():
-        for block in cfg.blocks.values():
-            pass
-            
-        
-    return funcs_vars, global_errors # TODO
+    # Типы данных в листьях: проверяем типы во всех выражениях
+    # После этого вызова в not_typed_data узлы будут иметь заполненные node.type
+    type_check_results = check_all_functions(
+        not_typed_data,
+        funcs_vars,
+        funcs_calls,
+        funcs_returns,
+    )
+    
+    # Собираем ошибки типизации
+    type_errors = format_type_errors(type_check_results)
+    for func_name, errors in type_errors.items():
+        global_errors[func_name] = global_errors.get(func_name, []) + errors
+    
+    if global_errors:
+        return None, global_errors
+    
+    # Возвращаем typed_data - это та же структура, но с заполненными типами
+    # not_typed_data теперь типизирована (node.type заполнены)
+    typed_data = not_typed_data
+    
+    return typed_data, global_errors
