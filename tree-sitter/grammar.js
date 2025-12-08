@@ -179,12 +179,12 @@ module.exports = grammar({
 
     literal: $ => choice($.bool, $.str, $.char, $.hex, $.bits, $.dec),
 
-    indexer: $ => prec(PREC.SUBSCRIPT, seq(
+    indexer: $ => prec.left(PREC.SUBSCRIPT, seq(
       field('expr', $.expression),
       seq('[', optional(field('listExpr', $.list_expr)), ']')
     )),
 
-    call_expression: $ => prec(PREC.CALL, seq(
+    call_expression: $ => prec.left(PREC.CALL, seq(
       field('expr', $.expression),
       seq('(', optional(field('listExpr', $.list_expr)), ')')
     )),
@@ -201,29 +201,30 @@ module.exports = grammar({
 
     binary_expression: $ => {
       const table = [
-        [':=', PREC.ASSIGNMENT],
-        ['+', PREC.ADD],
-        ['-', PREC.ADD],
-        ['*', PREC.MULTIPLY],
-        ['/', PREC.MULTIPLY],
-        ['%', PREC.MULTIPLY],
-        ['||', PREC.LOGICAL_OR],
-        ['&&', PREC.LOGICAL_AND],
-        ['|', PREC.INCLUSIVE_OR],
-        ['^', PREC.EXCLUSIVE_OR],
-        ['&', PREC.BITWISE_AND],
-        ['=', PREC.EQUAL],
-        ['!=', PREC.EQUAL],
-        ['>', PREC.RELATIONAL],
-        ['>=', PREC.RELATIONAL],
-        ['<=', PREC.RELATIONAL],
-        ['<', PREC.RELATIONAL],
-        ['<<', PREC.SHIFT],
-        ['>>', PREC.SHIFT],
+        [':=', PREC.ASSIGNMENT, 'right'], 
+        ['+', PREC.ADD, 'left'],
+        ['-', PREC.ADD, 'left'],
+        ['*', PREC.MULTIPLY, 'left'],
+        ['/', PREC.MULTIPLY, 'left'],
+        ['%', PREC.MULTIPLY, 'left'],
+        ['||', PREC.LOGICAL_OR, 'left'],
+        ['&&', PREC.LOGICAL_AND, 'left'],
+        ['|', PREC.INCLUSIVE_OR, 'left'],
+        ['^', PREC.EXCLUSIVE_OR, 'left'],
+        ['&', PREC.BITWISE_AND, 'left'],
+        ['=', PREC.EQUAL, 'left'],
+        ['!=', PREC.EQUAL, 'left'],
+        ['>', PREC.RELATIONAL, 'left'],
+        ['>=', PREC.RELATIONAL, 'left'],
+        ['<=', PREC.RELATIONAL, 'left'],
+        ['<', PREC.RELATIONAL, 'left'],
+        ['<<', PREC.SHIFT, 'left'],
+        ['>>', PREC.SHIFT, 'left'],
       ];
 
-      return choice(...table.map(([operator, precedence]) => {
-        return prec.right(precedence, seq(
+      return choice(...table.map(([operator, precedence, associativity]) => {
+        const precFunc = associativity === 'right' ? prec.right : prec.left;
+        return precFunc(precedence, seq(
           field('expr', $.expression),
           // @ts-ignore
           field('binOp', alias(operator, $.bin_op)),
