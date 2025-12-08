@@ -198,7 +198,6 @@ def parce_break(tree: TreeViewNode, graph: CFG, before: Block, label: str = None
     graph.add_edge(before, break_id, label)
     if end_cycle == None:
         raise SyntaxError(f"Error: break without cycle at {tree.node.end_point}")
-        return break_id
     return None
     
 def parce_statment(tree: TreeViewNode, graph: CFG, before: Block, label: str = None, end_cycle: Block = None):
