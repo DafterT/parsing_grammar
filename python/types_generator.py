@@ -1,5 +1,10 @@
 from file_parser_to_graph import BUILTIN_TYPES, BUILTIN_FUNCTIONS
-from type_checker import TypeChecker, check_all_functions, format_type_errors
+from type_checker import (
+    TypeChecker,
+    check_all_functions,
+    format_type_errors,
+    normalize_type,
+)
 
 def get_type_from_typeRef(type_ref_node):
     """
@@ -21,7 +26,7 @@ def get_type_from_typeRef(type_ref_node):
     # builtin: 'int', 'bool', 'string', ...
     if kind.label == 'builtin':
         token = kind.children[0]
-        return token.label.strip('"'), None
+        return normalize_type(token.label.strip('"')), None
 
     # custom: identifier — считаем ошибкой (классы не поддерживаются)
     # custom сам является identifier (не содержит вложенный identifier)
@@ -61,8 +66,9 @@ def get_type_from_typeRef(type_ref_node):
         inner_str, inner_err = get_type_from_typeRef(inner_type_ref)
         if inner_err is not None:
             return None, inner_err
+        inner_str = normalize_type(inner_str)
 
-        return f"array[] of {inner_str}", None
+        return normalize_type(f"array[] of {inner_str}"), None
 
     return None, f"неподдерживаемый вид typeRef: {kind.label}"
 
@@ -326,8 +332,9 @@ def process_type(not_typed_data: dict):
 
     # 3. Конструкторы массивов: int(size) -> array[] of int, и т.д.
     for t_name in BUILTIN_TYPES:
-        # returns: array[] of <t_name>
-        ret_type = f"array[] of {t_name}"
+        # returns: array[] of <t_name> (char -> byte, string -> array of byte)
+        normalized_name = normalize_type(t_name)
+        ret_type = normalize_type(f"array[] of {normalized_name}")
         funcs_returns[t_name] = (ret_type, None)
         
         # args: size: int

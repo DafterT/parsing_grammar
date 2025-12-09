@@ -222,3 +222,10 @@ begin
     i := read_byte();
     send_byte(i);
 end;
+
+method test_strings()
+var i: string;
+begin
+    i := "12312";
+    i[5] := '1';
+end;

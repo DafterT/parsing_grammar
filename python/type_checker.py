@@ -13,7 +13,8 @@ import re
 
 
 # Числовые типы (целочисленные)
-INTEGER_TYPES = {'byte', 'int', 'uint', 'long', 'ulong'}
+# char приравниваем к byte, поэтому включаем его в целочисленные типы для совместимости
+INTEGER_TYPES = {'byte', 'char', 'int', 'uint', 'long', 'ulong'}
 
 # Все числовые типы
 NUMERIC_TYPES = INTEGER_TYPES
@@ -29,7 +30,8 @@ ARITHMETIC_TYPES = NUMERIC_TYPES | {UNTYPED_INT}
 BITWISE_TYPES = INTEGER_TYPES | {UNTYPED_INT}
 
 # Типы, которые можно сравнивать
-COMPARABLE_TYPES = NUMERIC_TYPES | {'char', 'bool', 'string', UNTYPED_INT}
+# Строки считаются массивами байт, поэтому сравним тип 'array[] of byte'
+COMPARABLE_TYPES = NUMERIC_TYPES | {'bool', UNTYPED_INT}
 
 # Операторы по категориям
 ARITHMETIC_OPS = {'+', '-', '*', '/', '%'}
@@ -69,14 +71,14 @@ def get_literal_type(lit_type: str) -> str:
     hex -> _untyped_int
     bits -> _untyped_int
     bool -> bool
-    str -> string
-    char -> char
+    str -> array[] of byte (строка — массив байт)
+    char -> byte
     """
     mapping = {
         'dec': UNTYPED_INT,
         'bool': 'bool',
-        'str': 'string',
-        'char': 'char',
+        'str': 'array[] of byte',
+        'char': 'byte',
         'hex': UNTYPED_INT,
         'bits': UNTYPED_INT,
     }
@@ -167,6 +169,27 @@ def is_untyped_int(type_str: Optional[str]) -> bool:
     return type_str == UNTYPED_INT
 
 
+def normalize_type(type_str: Optional[str]) -> Optional[str]:
+    """
+    Нормализует типы с учётом требований:
+    - char эквивалентен byte
+    - string трактуем как array[] of byte
+    - array[] of char -> array[] of byte
+    """
+    if type_str is None:
+        return None
+    if type_str == 'char':
+        return 'byte'
+    if type_str == 'string':
+        return 'array[] of byte'
+    if is_array_type(type_str):
+        element = get_array_element_type(type_str)
+        normalized_element = normalize_type(element)
+        if normalized_element:
+            return f'array[] of {normalized_element}'
+    return type_str
+
+
 def unify_types(left_type: Optional[str], right_type: Optional[str]) -> Optional[str]:
     """
     Унифицирует два типа для бинарной операции.
@@ -180,6 +203,9 @@ def unify_types(left_type: Optional[str], right_type: Optional[str]) -> Optional
     
     Иначе возвращает None (типы несовместимы).
     """
+    left_type = normalize_type(left_type)
+    right_type = normalize_type(right_type)
+
     if left_type is None or right_type is None:
         return left_type or right_type
     
@@ -208,6 +234,7 @@ def resolve_type(type_str: Optional[str]) -> Optional[str]:
     Разрешает тип для отображения.
     Если тип - UNTYPED_INT, возвращает 'int'.
     """
+    type_str = normalize_type(type_str)
     if type_str == UNTYPED_INT:
         return 'int'
     return type_str
@@ -256,10 +283,11 @@ class TypeChecker:
     
     def set_resolved_type(self, node: TreeViewNode, type_str: str):
         """Сохраняет разрешённый тип для узла и записывает в node.type."""
-        if type_str is not None:
-            self.resolved_types[id(node)] = type_str
+        normalized = normalize_type(type_str)
+        if normalized is not None:
+            self.resolved_types[id(node)] = normalized
             # Также записываем в сам узел
-            node.type = type_str
+            node.type = normalized
     
     def get_resolved_type(self, node: TreeViewNode) -> Optional[str]:
         """Получает разрешённый тип для узла."""
@@ -282,6 +310,11 @@ class TypeChecker:
         elif inferred_type is not None:
             # Разрешаем UNTYPED_INT в int для отображения
             node.type = resolve_type(inferred_type)
+        
+        # Пропагируем типы к дочерним узлам для правильной обработки вложенных выражений
+        # Это особенно важно для бинарных операций, присваиваний и вызовов функций
+        final_type = node.type
+        self._propagate_types_to_children(node, final_type)
         
         # Рекурсивно присваиваем типы потомкам (если они ещё не обработаны)
         for child in node.children:
@@ -317,20 +350,20 @@ class TypeChecker:
             base_name = var_name[:-2]
             type_info = self.current_vars.get(base_name) or self.current_args.get(base_name)
             if type_info:
-                return type_info[0]
+                return normalize_type(type_info[0])
             return None
         
         # Обычная переменная
         type_info = self.current_vars.get(var_name) or self.current_args.get(var_name)
         if type_info:
-            return type_info[0]
+            return normalize_type(type_info[0])
         return None
     
     def get_function_return_type(self, func_name: str) -> Optional[str]:
         """Получает тип возвращаемого значения функции."""
         type_info = self.funcs_returns.get(func_name)
         if type_info:
-            return type_info[0]
+            return normalize_type(type_info[0])
         return None
     
     def get_function_args(self, func_name: str) -> Dict[str, Tuple[Optional[str], object]]:
@@ -350,7 +383,7 @@ class TypeChecker:
         if label.startswith('const('):
             lit_type, value = parse_const_literal(label)
             if lit_type:
-                return get_literal_type(lit_type), errors
+                return normalize_type(get_literal_type(lit_type)), errors
             errors.append(TypeCheckError(
                 message=f"Не удалось распознать константу: {label}",
                 tree=node,
@@ -369,7 +402,7 @@ class TypeChecker:
                         tree=node,
                         tree_str=tree_view_to_str(node)
                     ))
-                return var_type, errors
+                return normalize_type(var_type), errors
             errors.append(TypeCheckError(
                 message=f"Не удалось распознать load: {label}",
                 tree=node,
@@ -384,7 +417,7 @@ class TypeChecker:
                 call_errors = self._check_call(node, func_name)
                 errors.extend(call_errors)
                 return_type = self.get_function_return_type(func_name)
-                return return_type, errors
+                return normalize_type(return_type), errors
             errors.append(TypeCheckError(
                 message=f"Не удалось распознать вызов функции: {label}",
                 tree=node,
@@ -408,6 +441,7 @@ class TypeChecker:
                 # Проверяем тип правой части
                 rhs_type, rhs_errors = self.infer_type(node.children[0])
                 errors.extend(rhs_errors)
+                rhs_type = normalize_type(rhs_type)
 
                 # UNTYPED_INT автоматически приводится к числовому типу переменной
                 if rhs_type is not None:
@@ -449,7 +483,7 @@ class TypeChecker:
                     ))
                     return None, errors
                 
-                element_type = get_array_element_type(arr_type)
+                element_type = normalize_type(get_array_element_type(arr_type))
                 
                 # Дети: [idx1, idx2, ..., value]
                 # Последний ребёнок - значение, остальные - индексы
@@ -468,6 +502,7 @@ class TypeChecker:
                 for idx_node in indices:
                     idx_type, idx_errors = self.infer_type(idx_node)
                     errors.extend(idx_errors)
+                    idx_type = normalize_type(idx_type)
 
                     if idx_type is not None and idx_type != 'int' and not is_untyped_int(idx_type):
                         errors.append(TypeCheckError(
@@ -479,6 +514,7 @@ class TypeChecker:
                 # Проверяем тип значения
                 value_type, value_errors = self.infer_type(value_node)
                 errors.extend(value_errors)
+                value_type = normalize_type(value_type)
 
                 if value_type is not None and element_type is not None:
                     # UNTYPED_INT автоматически приводится к числовому типу элемента
@@ -511,9 +547,11 @@ class TypeChecker:
             base_node, index_node = node.children
             base_type, base_errors = self.infer_type(base_node)
             errors.extend(base_errors)
+            base_type = normalize_type(base_type)
 
             index_type, index_errors = self.infer_type(index_node)
             errors.extend(index_errors)
+            index_type = normalize_type(index_type)
 
             # Индекс должен быть int (UNTYPED_INT автоматически приводится к int)
             if index_type is not None and index_type != 'int' and not is_untyped_int(index_type):
@@ -533,7 +571,7 @@ class TypeChecker:
                     ))
                     return None, errors
                 
-                element_type = get_array_element_type(base_type)
+                element_type = normalize_type(get_array_element_type(base_type))
                 return element_type, errors
             
             return None, errors
@@ -607,9 +645,11 @@ class TypeChecker:
         for i in range(check_count):
             actual_node = actual_args[i]
             arg_name, (expected_type, _) = expected_arg_list[i]
+            expected_type = normalize_type(expected_type)
 
             actual_type, arg_errors = self.infer_type(actual_node)
             errors.extend(arg_errors)
+            actual_type = normalize_type(actual_type)
 
             if actual_type is not None and expected_type is not None:
                 # UNTYPED_INT автоматически приводится к числовому типу аргумента
@@ -640,8 +680,10 @@ class TypeChecker:
         
         Также рекурсивно пропагирует типы к дочерним узлам.
         """
+        type_hint = normalize_type(type_hint)
         # Сначала получаем базовый тип
         base_type, errors = self.infer_type(node)
+        base_type = normalize_type(base_type)
         
         # Определяем финальный тип
         if is_untyped_int(base_type) and type_hint is not None and type_hint in NUMERIC_TYPES:
@@ -683,7 +725,7 @@ class TypeChecker:
             if arr_name:
                 arr_type = self.get_variable_type(arr_name)
                 if arr_type and is_array_type(arr_type):
-                    element_type = get_array_element_type(arr_type)
+                    element_type = normalize_type(get_array_element_type(arr_type))
                     if element_type and len(node.children) >= 2:
                         # Индексы - int, значение - тип элемента
                         for idx_node in node.children[:-1]:
@@ -739,7 +781,9 @@ class TypeChecker:
         """
         Рекурсивно разрешает типы в поддереве с учётом подсказки.
         """
+        type_hint = normalize_type(type_hint)
         base_type, _ = self.infer_type(node)
+        base_type = normalize_type(base_type)
         
         # Определяем финальный тип
         if is_untyped_int(base_type) and type_hint is not None and type_hint in NUMERIC_TYPES:
@@ -780,9 +824,11 @@ class TypeChecker:
 
         left_type, left_errors = self.infer_type(left_node)
         errors.extend(left_errors)
+        left_type = normalize_type(left_type)
 
         right_type, right_errors = self.infer_type(right_node)
         errors.extend(right_errors)
+        right_type = normalize_type(right_type)
 
         # Проверяем, что типы разрешены (учитываем UNTYPED_INT)
         if left_type is not None and left_type not in allowed_types:
@@ -929,6 +975,7 @@ class TypeChecker:
         
         operand_type, operand_errors = self.infer_type(node.children[0])
         errors.extend(operand_errors)
+        operand_type = normalize_type(operand_type)
         
         if operand_type is not None and operand_type not in BITWISE_TYPES:
             errors.append(TypeCheckError(
