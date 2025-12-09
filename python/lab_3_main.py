@@ -8,6 +8,36 @@ from types_generator import process_type
 from type_checker import render_all_typed_cfgs
 from pathlib import Path
 
+
+def write_type_errors(errors, out_dir_path: Path):
+    type_errors_path = out_dir_path / "type_errors.txt"
+    with open(type_errors_path, "w", encoding="utf-8") as f:
+        for func_name, err_list in errors.items():
+            f.write(f"=== {func_name} ===\n")
+            for err in err_list:
+                f.write(f"{err}\n")
+            f.write("\n")
+    print(f"Ошибки типизации записаны в {type_errors_path}")
+
+
+def render_typed_graphs(typed_data, out_dir_path: Path):
+    typed_graph_dir = out_dir_path / "typed_graph"
+    render_all_typed_cfgs(typed_data, str(typed_graph_dir), fmt="svg")
+    print(f"Типизированные графы сохранены в {typed_graph_dir}")
+
+
+def handle_type_check(result, out_dir_path: Path):
+    # process_type возвращает typed_data - та же структура, но с типами в node.type
+    typed_data, errors = process_type(result)
+
+    if errors:
+        write_type_errors(errors, out_dir_path)
+        return
+
+    if typed_data:
+        render_typed_graphs(typed_data, out_dir_path)
+
+
 def main():
     grammar_dir, lang_name, file_paths, out_dir, lib_path = parse_cli()
     result = analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=out_dir)
@@ -19,30 +49,11 @@ def main():
 
     errors_report_path = call_graph_base.with_suffix(".errors.txt")
     ready_assemble = write_errors_report(result, filename=str(errors_report_path))
+    
     if ready_assemble:
         return
-    
-    # process_type возвращает typed_data - та же структура, но с типами в node.type
-    typed_data, errors = process_type(result)
-    
-    if errors:
-        # Записываем ошибки типизации
-        type_errors_path = out_dir_path / "type_errors.txt"
-        with open(type_errors_path, "w", encoding="utf-8") as f:
-            for func_name, err_list in errors.items():
-                f.write(f"=== {func_name} ===\n")
-                for err in err_list:
-                    f.write(f"{err}\n")
-                f.write("\n")
-        print(f"Ошибки типизации записаны в {type_errors_path}")
-        return
-    
-    # Создаём типизированные графы
-    if typed_data:
-        typed_graph_dir = out_dir_path / "typed_graph"
-        # Теперь render_all_typed_cfgs просто читает типы из node.type
-        render_all_typed_cfgs(typed_data, str(typed_graph_dir), fmt="svg")
-        print(f"Типизированные графы сохранены в {typed_graph_dir}")
+
+    handle_type_check(result, out_dir_path)
 
 
 if __name__ == "__main__":
