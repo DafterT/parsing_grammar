@@ -52,4 +52,10 @@ zig-out/
 venv
 __pycache__
 .vscode
+
+# allow tracking of architecture workspace files
+!architecture/.vscode/
+!architecture/.vscode/**
+!architecture/**/*.dll
 out
+doc

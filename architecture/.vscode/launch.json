@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+            {
+            "name": "(gdb) remote launch",
+            "logging": { "trace": true, "engineLogging": true },
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/out_local.ptptb",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [ ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerArgs": "-ul 506278 -up ce9478b3-17b1-4137-a401-4af8bd1466d7 -il -q -w -s MachineDebugBinaryWithInput definitionFile stack16.target.pdsl archName stack16 binaryFileToRun out_local.ptptb codeRamBankName code ipRegStorageName ip finishMnemonicName hlt stdinRegStName rin stdoutRegStName rout inputFile in.txt",
+            "miDebuggerPath": "${workspaceFolder}/Portable.RemoteTasks.Manager.exe"
+        }
+    ]
+}

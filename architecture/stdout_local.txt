@@ -1,0 +1,3 @@
+Architecture 'stack16' seems to be valid for now.
+Assembling accomplished.
+Binary module written.

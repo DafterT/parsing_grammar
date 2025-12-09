@@ -1,0 +1,173 @@
+architecture stack16 {
+
+	/*
+		case                stack16
+		data word length    4
+		code model          stack-based
+		spaces              code+const, data
+	*/
+
+	registers:
+
+		storage ip [32];   // instruction pointer (byte address)
+		storage sp [32];   // stack pointer (stack in data, grows down, 4-byte words)
+		storage bp [32];   // base/frame pointer for stack frames
+
+		// volatile temporaries used by instructions; not preserved across ops
+		storage t0 [32];
+		storage t1 [32];
+
+		storage rin [8];   // input port
+		storage rout [8];  // output port
+
+	memory:
+
+		// code + embedded constants (logical 64K bank)
+		range code [0x0000 .. 0xffff] {
+			cell = 8;
+			endianess = little-endian;
+			granularity = 2;
+		}
+
+		// data bank; stack lives here and grows down from top of the bank
+		range dmem [0x0000 .. 0xffff] {
+			cell = 8;
+			endianess = little-endian;
+			granularity = 4;
+		}
+
+	instructions:
+
+		encode imm16 field = immediate [16];
+		encode imm32 field = immediate [32];
+
+		// unconditional jump (absolute)
+		instruction jmp = { 0001 0000, imm16 as target } {
+			ip = target;
+		};
+
+		// jump if top-of-stack == 0; pops 1 word
+		instruction jz = { 0001 0001, imm16 as target } {
+			t0 = dmem:4[sp];   // use temp
+			sp = sp + 4;
+			when t0 then
+				ip = ip + 3;   // non-zero -> no jump
+			else
+				ip = target;   // zero -> jump
+		};
+
+		// jump if top-of-stack != 0; pops 1 word
+		instruction jnz = { 0001 0010, imm16 as target } {
+			t0 = dmem:4[sp];   // use temp
+			sp = sp + 4;
+			when t0 then
+				ip = target;   // non-zero -> jump
+			else
+				ip = ip + 3;   // zero -> skip jump
+		};
+
+		// call absolute; pushes return address (next instruction) on stack
+		instruction call = { 0001 0011, imm16 as target } {
+			sp = sp - 4;
+			dmem:4[sp] = ip + 3;
+			ip = target;
+		};
+
+		// return; pops ip from stack
+		instruction ret = { 0001 0100 } {
+			ip = dmem:4[sp];
+			sp = sp + 4;
+		};
+
+		// stop execution
+		instruction hlt = { 0001 0101 } {
+		};
+
+		// --- stack operations (32-bit words) ---
+
+		// set stack pointer to immediate (use to initialize stack before pushes)
+		instruction ldsp = { 0001 0110, imm32 as value } {
+			sp = value;
+			ip = ip + 5;
+		};
+
+		// push immediate 32-bit value
+		instruction push = { 0001 1000, imm32 as value } {
+			sp = sp - 4;
+			dmem:4[sp] = value;
+			ip = ip + 5;
+		};
+
+		// drop top of stack
+		instruction drop = { 0001 1001 } {
+			sp = sp + 4;
+			ip = ip + 1;
+		};
+
+		// load: pop address, push value at [address]
+		instruction load = { 0001 1010 } {
+			t0 = dmem:4[sp];             // read address on top
+			dmem:4[sp] = dmem:4[t0];     // overwrite with loaded value (net zero on sp)
+			ip = ip + 1;
+		};
+
+		// store: pop value and address (addr under value) -> memory[addr] = value
+		instruction store = { 0001 1011 } {
+			t0 = dmem:4[sp + 4];         // addr
+			t1 = dmem:4[sp];             // value
+			dmem:4[t0] = t1;
+			sp = sp + 8;
+			ip = ip + 1;
+		};
+
+		// --- io using rin/rout ports ---
+
+		// read byte from input port, push zero-extended to 32-bit
+		instruction inb = { 0001 1100 } {
+			sp = sp - 4;
+			dmem:4[sp] = rin;
+			ip = ip + 1;
+		};
+
+		// pop 32-bit, write low byte to output port
+		instruction outb = { 0001 1101 } {
+			rout = dmem:4[sp];
+			sp = sp + 4;
+			ip = ip + 1;
+		};
+
+		// --- arithmetic (32-bit) ---
+
+		// add: pop b, pop a, push (a + b)
+		instruction add = { 0001 1110 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = t1 + t0;
+			ip = ip + 1;
+		};
+
+	mnemonics:
+		format plain1 is "{1}";
+		format plain0 is "";
+
+		mnemonic jmp for jmp(target) plain1;
+		mnemonic jz(target) plain1;
+		mnemonic jnz(target) plain1;
+		mnemonic call(target) plain1;
+		mnemonic ret();
+		mnemonic hlt();
+
+		mnemonic ldsp(value) plain1;
+
+		mnemonic push(value) plain1;
+		mnemonic drop() plain0;
+		mnemonic load() plain0;
+		mnemonic store() plain0;
+
+		mnemonic inb() plain0;
+		mnemonic outb() plain0;
+        
+		mnemonic add() plain0;
+}
+
