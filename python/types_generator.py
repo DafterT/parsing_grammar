@@ -248,7 +248,7 @@ def process_type(not_typed_data: dict):
     funcs_calls = {}
     funcs_vars = {}
     # Типы данных функций
-    for func_name, (references, _, cfg, tree, params) in not_typed_data.items():
+    for func_name, (references, _, cfg, tree, params, vars) in not_typed_data.items():
         # Пропускаем псевдо-узлы файлов
         if func_name.startswith('<file:'):
             continue
@@ -376,7 +376,7 @@ def check_main_function(result, errors_report_path) -> bool:
     from pathlib import Path
     
     main_func = None
-    for func_name, (calls, errors, cfg, tree, params) in result.items():
+    for func_name, (calls, errors, cfg, tree, params, vars) in result.items():
         # Пропускаем псевдо-узлы файлов
         if func_name.startswith('<file:'):
             continue
