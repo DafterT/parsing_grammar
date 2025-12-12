@@ -4,6 +4,7 @@ from file_parser_to_graph import (
     render_call_graph,
     write_errors_report,
 )
+from generate_asm import generate_asm
 from types_generator import process_type
 from type_checker import render_all_typed_cfgs
 from pathlib import Path
@@ -54,7 +55,13 @@ def main():
         return
 
     handle_type_check(result, out_dir_path)
+    
+    asm_file = out_dir_path / "result.asm"
+    
+    generate_asm(result, str(asm_file))
+    print(f"Ассемблерный код сохранен в {asm_file}")
 
+    return
 
 if __name__ == "__main__":
     main()
