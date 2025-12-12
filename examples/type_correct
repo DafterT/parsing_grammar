@@ -1,3 +1,9 @@
+method test_unary()
+var a: int; b: int;
+begin
+    a := ~b;
+end;
+
 method test_int_arithmetic()
 var a: int; b: int; c: int;
 begin
