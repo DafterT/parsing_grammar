@@ -23,11 +23,28 @@ def _generate_type_constructor(out_file, type_name, size_shift):
         type_name: Имя типа (bool, byte, int, etc.)
         size_shift: Сдвиг размера для alloc (0 для 1 байта, 1 для 2 байт, 2 для 4 байт)
     """
+    # Выравнивание комментариев: название функции до колонки 20, push до колонки 20
+    label_col = 24
+    push_col = 24
+    indent = "     "  # 5 пробелов для отступа команд
+    
+    # Форматируем название функции с выравниванием комментария
+    label_line = f"{type_name}:"
+    label_padding = " " * (label_col - len(label_line))
+    label_line = f"{label_line}{label_padding}; Builtin constructor: {type_name}(size) -> array[] of {type_name}"
+    
+    # Форматируем push с выравниванием комментария
+    # Учитываем отступ (5 пробелов) + команда push + число
+    push_cmd = f"push {size_shift}"
+    total_push_len = len(indent) + len(push_cmd)
+    push_padding = " " * (push_col - total_push_len)
+    push_line = f"{indent}{push_cmd}{push_padding}; push size_shift to stack"
+    
     with open(out_file, 'a', encoding='utf-8') as f:
         f.write(f"""
-{type_name}:            ; Builtin constructor: {type_name}(size) -> array[] of {type_name}
+{label_line}
      ldbp 8             ; load len (size of array) from [bp+8] and push to stack
-     push {size_shift}  ; push size_shift to stack
+{push_line}
      call alloc         ; alloc(size_shift, len) -> result on TOS after ret
      stbp 8             ; store result at [bp+8] and pop
      ret

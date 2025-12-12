@@ -235,3 +235,32 @@ begin
     i := "12312";
     i[5] := '1';
 end;
+
+method main()
+begin
+    test_unary();
+    test_int_arithmetic();
+    test_uint_arithmetic();
+    test_long_arithmetic();
+    test_ulong_arithmetic();
+    test_byte_arithmetic();
+    test_int_bitwise();
+    test_uint_bitwise();
+    test_byte_bitwise();
+    test_logical();
+    test_int_comparison();
+    test_uint_comparison();
+    test_char_comparison();
+    test_int_array();
+    test_uint_array();
+    test_byte_array();
+    test_char_array();
+    test_call_int();
+    test_call_uint();
+    test_call_long();
+    test_literals();
+    test_nested_expr();
+    test_literals_auto_type();
+    test_generated_functions();
+    test_strings();
+end;

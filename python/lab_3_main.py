@@ -5,7 +5,7 @@ from file_parser_to_graph import (
     write_errors_report,
 )
 from generate_asm import generate_asm
-from types_generator import process_type
+from types_generator import process_type, check_main_function
 from type_checker import render_all_typed_cfgs
 from pathlib import Path
 
@@ -55,6 +55,10 @@ def main():
         return
 
     handle_type_check(result, out_dir_path)
+    
+    # Проверка наличия функции main без аргументов и без возвращаемого значения
+    if not check_main_function(result, errors_report_path):
+        return
     
     asm_file = out_dir_path / "result.asm"
     

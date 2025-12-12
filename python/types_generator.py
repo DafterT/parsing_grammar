@@ -362,3 +362,70 @@ def process_type(not_typed_data: dict):
     typed_data = not_typed_data
     
     return typed_data, global_errors
+
+
+def check_main_function(result, errors_report_path) -> bool:
+    """
+    Проверяет наличие функции main без аргументов и без возвращаемого значения.
+    Возвращает True, если функция main найдена и соответствует требованиям.
+    """
+    from pathlib import Path
+    
+    main_func = None
+    for func_name, (calls, errors, cfg, tree) in result.items():
+        # Пропускаем псевдо-узлы файлов
+        if func_name.startswith('<file:'):
+            continue
+        
+        # Пропускаем функции без тела
+        if cfg is None:
+            continue
+        
+        if func_name == 'main':
+            main_func = (func_name, tree)
+            break
+    
+    if main_func is None:
+        # Записываем ошибку в файл с логами
+        errors_report_path = Path(errors_report_path)
+        with open(errors_report_path, "a", encoding="utf-8") as f:
+            f.write("\n=== MAIN FUNCTION ERROR ===\n")
+            f.write("Функция main без аргументов и без возвращаемого значения не найдена\n")
+        return False
+    
+    func_name, tree = main_func
+    
+    # Проверяем возвращаемый тип (должен быть None - процедура)
+    func_type, error = get_func_returns_type(tree)
+    if error or func_type[0] is not None:
+        errors_report_path = Path(errors_report_path)
+        with open(errors_report_path, "a", encoding="utf-8") as f:
+            f.write("\n=== MAIN FUNCTION ERROR ===\n")
+            if error:
+                f.write(f"Ошибка при проверке возвращаемого типа функции main: {error}\n")
+            else:
+                f.write(f"Функция main имеет возвращаемый тип: {func_type[0]}, ожидается void (без возвращаемого значения)\n")
+        print(f"Ошибка: функция main имеет возвращаемое значение. Детали в {errors_report_path}")
+        return False
+    
+    # Проверяем аргументы (должно быть пусто)
+    func_def = tree.children[0]
+    func_signature = func_def.children[1]
+    # funcSignature -> [identifier, '(', list_argDef?, ')', (':' typeRef)?]
+    arg_list_node = None
+    for child in func_signature.children:
+        if child.label == 'list<argDef>':
+            arg_list_node = child
+            break
+    
+    if arg_list_node:
+        func_args, _ = get_args_dict(arg_list_node.children)
+        if func_args:
+            errors_report_path = Path(errors_report_path)
+            with open(errors_report_path, "a", encoding="utf-8") as f:
+                f.write("\n=== MAIN FUNCTION ERROR ===\n")
+                f.write(f"Функция main имеет аргументы: {', '.join(func_args.keys())}, ожидается функция без аргументов\n")
+            print(f"Ошибка: функция main имеет аргументы. Детали в {errors_report_path}")
+            return False
+    
+    return True
