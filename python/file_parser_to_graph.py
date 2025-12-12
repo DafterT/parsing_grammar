@@ -64,6 +64,71 @@ BUILTIN_FUNCTIONS = {
 }
 
 
+def get_args_list_ordered(tree):
+    """
+    Извлекает аргументы функции в упорядоченном виде из дерева функции.
+    
+    tree — узел функции (funcDef).
+    
+    Возвращает:
+      list[tuple[str, str | None]]: список кортежей (название_переменной, тип)
+      Тип может быть None, если тип не задан или не удалось определить.
+    """
+    from types_generator import get_type_from_typeRef, normalize_type
+    
+    # Структура дерева: tree (funcDef) -> children[0] -> children[1] (funcSignature)
+    # Это видно из get_func_returns_type: tree.children[0].children[1]
+    if not tree.children or len(tree.children) < 1:
+        return []
+    
+    func_def_wrapper = tree.children[0]
+    if not func_def_wrapper.children or len(func_def_wrapper.children) < 2:
+        return []
+    
+    func_signature = func_def_wrapper.children[1]
+    
+    # funcSignature -> [identifier, '(', list_argDef?, ')', (':' typeRef)?]
+    arg_list_node = None
+    for child in func_signature.children:
+        if child.label == 'list<argDef>':
+            arg_list_node = child
+            break
+    
+    if not arg_list_node:
+        return []
+    
+    args_list = []
+    # arg_list_node.children содержит [argDef, ",", argDef, ",", argDef, ...]
+    for node in arg_list_node.children:
+        if node.label != 'argDef':
+            continue
+        
+        # argDef: identifier (':' typeRef)?
+        ident_node = None
+        type_ref_node = None
+        
+        for child in node.children:
+            if child.label == 'identifier':
+                ident_node = child
+            elif child.label == 'typeRef':
+                type_ref_node = child
+        
+        if not ident_node:
+            continue
+        
+        name = ident_node.children[0].label.strip('"')
+        type_str = None
+        
+        if type_ref_node:
+            type_str, _ = get_type_from_typeRef(type_ref_node)
+            if type_str:
+                type_str = normalize_type(type_str)
+        
+        args_list.append((name, type_str))
+    
+    return args_list
+
+
 def compare_treeviews(previous_subtree: TreeViewNode | None,
                       current_subtree: TreeViewNode | None) -> bool:
     """
@@ -122,7 +187,7 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
         if errors_tree_build:
             pseudo_name = f"<file:{input_file_name}>"
             data = results_internal.setdefault(
-                pseudo_name, {"calls": set(), "errors": [], "cfg": None, "tree": view_root}
+                pseudo_name, {"calls": set(), "errors": [], "cfg": None, "tree": view_root, "params": []}
             )
             for msg in errors_tree_build:
                 data["errors"].append(f"{file_path}: {msg}")
@@ -138,7 +203,7 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
                 continue
 
             data = results_internal.setdefault(
-                func_name, {"calls": set(), "errors": [], "cfg": None, "tree": node}
+                func_name, {"calls": set(), "errors": [], "cfg": None, "tree": node, "params": []}
             )
 
             # ВАЖНО: сохраняем старое дерево ДО любых изменений
@@ -201,15 +266,23 @@ def analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=None):
 
             cfg.remove_dangling_blocks()
             data["cfg"] = cfg
+            
+            # Извлекаем параметры функции в упорядоченном виде
+            data["params"] = get_args_list_ordered(node)
+            
             if graph_dir is not None:
                 render_cfg(
                     cfg,
                     filename=str(graph_dir / f"{input_file_name}_{func_name}"),
                     fmt="svg",
                 )
+        
+        # Для функций без CFG тоже извлекаем параметры
+        if data.get("cfg") is None and data.get("tree") is not None:
+            data["params"] = get_args_list_ordered(data["tree"])
 
     result = {
-        name: (info["calls"], info["errors"], info["cfg"], info["tree"])
+        name: (info["calls"], info["errors"], info["cfg"], info["tree"], info.get("params", []))
         for name, info in results_internal.items()
     }
     return result
@@ -226,13 +299,13 @@ def write_errors_report(result, filename: str) -> bool:
 
     # Разделим файл-уровень и функции
     file_entries = {
-        name: (calls, errors, cfg, tree)
-        for name, (calls, errors, cfg, tree) in result.items()
+        name: (calls, errors, cfg, tree, params)
+        for name, (calls, errors, cfg, tree, params) in result.items()
         if name.startswith("<file:")
     }
     func_entries = {
-        name: (calls, errors, cfg, tree)
-        for name, (calls, errors, cfg, tree) in result.items()
+        name: (calls, errors, cfg, tree, params)
+        for name, (calls, errors, cfg, tree, params) in result.items()
         if not name.startswith("<file:")
     }
 
@@ -257,7 +330,7 @@ def write_errors_report(result, filename: str) -> bool:
 
     # ==== Ошибки на уровне функций ====
     func_section_added = False
-    for fname, (calls, errors, cfg, _tree) in sorted(func_entries.items()):
+    for fname, (calls, errors, cfg, _tree, args) in sorted(func_entries.items()):
         status_parts = []
         if errors:
             status_parts.append("ERROR")
@@ -283,7 +356,7 @@ def write_errors_report(result, filename: str) -> bool:
     # ==== Функции, которые вызываются, но не объявлены ====
     defined_names = set(func_entries.keys())
     called_funcs = set()
-    for calls, _errors, _cfg, _tree in func_entries.values():
+    for calls, _errors, _cfg, _tree, _ in func_entries.values():
         called_funcs |= set(calls)
 
     missing_funcs = sorted(called_funcs - defined_names - BUILTIN_FUNCTIONS)
@@ -324,7 +397,7 @@ def calls_to_graphviz(result,
 
     # Все вызываемые функции
     called_funcs = set()
-    for _name, (calls, _errors, _cfg, tree) in defined_funcs.items():
+    for _name, (calls, _errors, _cfg, tree, _params) in defined_funcs.items():
         called_funcs |= set(calls)
 
     # Все имена функций: и объявленные, и только вызываемые
@@ -336,7 +409,7 @@ def calls_to_graphviz(result,
         status = ""
 
         if info is not None:
-            calls, errors, cfg, tree = info
+            calls, errors, cfg, tree, params = info
             if errors:
                 status = "ERROR"
             elif cfg is None:
@@ -357,7 +430,7 @@ def calls_to_graphviz(result,
         dot.node(fname, label=label)
 
     # Добавляем рёбра: кто кого вызывает
-    for caller, (calls, _errors, _cfg, tree) in defined_funcs.items():
+    for caller, (calls, _errors, _cfg, tree, _params) in defined_funcs.items():
         for callee in calls:
             # Узел для callee уже добавлен выше
             dot.edge(caller, callee)

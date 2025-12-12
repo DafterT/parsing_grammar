@@ -33,3 +33,4 @@ def generate_asm(typed_blocks, out_file):
     # Записываем встроенные функции
     generate_builtin_func(out_file)
     
+    

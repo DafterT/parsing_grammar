@@ -27,16 +27,18 @@ def render_typed_graphs(typed_data, out_dir_path: Path):
     print(f"Типизированные графы сохранены в {typed_graph_dir}")
 
 
-def handle_type_check(result, out_dir_path: Path):
+def handle_type_check(result, out_dir_path: Path) -> bool:
     # process_type возвращает typed_data - та же структура, но с типами в node.type
     typed_data, errors = process_type(result)
 
     if errors:
         write_type_errors(errors, out_dir_path)
-        return
+        return True  # Ошибки найдены, останавливаем трансляцию
 
     if typed_data:
         render_typed_graphs(typed_data, out_dir_path)
+    
+    return False  # Ошибок нет, продолжаем трансляцию
 
 
 def main():
@@ -54,7 +56,9 @@ def main():
     if ready_assemble:
         return
 
-    handle_type_check(result, out_dir_path)
+    # Проверка типов: если есть ошибки, останавливаем трансляцию
+    if handle_type_check(result, out_dir_path):
+        return
     
     # Проверка наличия функции main без аргументов и без возвращаемого значения
     if not check_main_function(result, errors_report_path):

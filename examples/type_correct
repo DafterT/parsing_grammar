@@ -143,40 +143,40 @@ begin
     arr[idx] := 'x';
 end;
 
-method add_ints(x: int, y: int): int
+method add_ints(x: int, y: int)
 var sum: int;
 begin
     sum := x + y;
 end;
 
-method add_uints(x: uint, y: uint): uint
+method add_uints(x: uint, y: uint)
 var sum: uint;
 begin
     sum := x + y;
 end;
 
-method add_longs(x: long, y: long): long
+method add_longs(x: long, y: long)
 var sum: long;
 begin
     sum := x + y;
 end;
 
 method test_call_int()
-var a: int; b: int; res: int;
+var a: int; b: int;
 begin
-    res := add_ints(a, b);
+    add_ints(a, b);
 end;
 
 method test_call_uint()
-var a: uint; b: uint; res: uint;
+var a: uint; b: uint;
 begin
-    res := add_uints(a, b);
+    add_uints(a, b);
 end;
 
 method test_call_long()
-var a: long; b: long; res: long;
+var a: long; b: long;
 begin
-    res := add_longs(a, b);
+    add_longs(a, b);
 end;
 
 method test_literals()

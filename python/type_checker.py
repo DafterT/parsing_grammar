@@ -1019,7 +1019,7 @@ def check_all_functions(
     """
     Проверяет типы во всех функциях и присваивает типы узлам.
 
-    not_typed_data: { func_name: (references, _, cfg, tree) }
+    not_typed_data: { func_name: (references, _, cfg, tree, params) }
 
     Возвращает: { func_name: TypeCheckResult }
     
@@ -1029,7 +1029,7 @@ def check_all_functions(
     checker = TypeChecker(funcs_vars, funcs_calls, funcs_returns)
     results: Dict[str, TypeCheckResult] = {}
     
-    for func_name, (references, _, cfg, tree) in not_typed_data.items():
+    for func_name, (references, _, cfg, tree, params) in not_typed_data.items():
         # Пропускаем псевдо-узлы файлов и функции без CFG
         if func_name.startswith('<file:'):
             continue
@@ -1148,14 +1148,14 @@ def render_all_typed_cfgs(
     """
     Рендерит все типизированные CFG в указанную директорию.
     
-    typed_data: { func_name: (references, _, cfg, tree) } - с заполненными типами.
+    typed_data: { func_name: (references, _, cfg, tree, params) } - с заполненными типами.
     """
     from pathlib import Path
     
     out_path = Path(output_dir)
     out_path.mkdir(parents=True, exist_ok=True)
     
-    for func_name, (references, _, cfg, tree) in typed_data.items():
+    for func_name, (references, _, cfg, tree, params) in typed_data.items():
         if func_name.startswith('<file:'):
             continue
         if cfg is None:

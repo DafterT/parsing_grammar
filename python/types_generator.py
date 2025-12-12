@@ -248,7 +248,7 @@ def process_type(not_typed_data: dict):
     funcs_calls = {}
     funcs_vars = {}
     # Типы данных функций
-    for func_name, (references, _, cfg, tree) in not_typed_data.items():
+    for func_name, (references, _, cfg, tree, params) in not_typed_data.items():
         # Пропускаем псевдо-узлы файлов
         if func_name.startswith('<file:'):
             continue
@@ -261,6 +261,10 @@ def process_type(not_typed_data: dict):
         func_type, error = get_func_returns_type(tree)
         if error:
             global_errors[func_name] = [error]
+        # Проверка: функции с возвращаемым значением считаются ошибкой
+        if func_type[0] is not None:
+            error_msg = f"функция '{func_name}' имеет возвращаемое значение, что не допускается"
+            global_errors[func_name] = global_errors.get(func_name, []) + [error_msg]
         funcs_returns[func_name] = func_type
         
         # Типы данных локальных переменных функции
@@ -372,7 +376,7 @@ def check_main_function(result, errors_report_path) -> bool:
     from pathlib import Path
     
     main_func = None
-    for func_name, (calls, errors, cfg, tree) in result.items():
+    for func_name, (calls, errors, cfg, tree, params) in result.items():
         # Пропускаем псевдо-узлы файлов
         if func_name.startswith('<file:'):
             continue
