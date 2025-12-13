@@ -36,7 +36,7 @@ def process_func(f_name, f_cfg, f_tree, f_params, out_file, vars):
         vars_dict[var_name] = (var_type, offset)
     
     with open(out_file, 'a', encoding='utf-8') as f:
-        f.write(f'{f_name}:\n')
+        f.write(f'\n{f_name}:\n')
         
         for var_name, var_type in vars:
             f.write(f'    push 0    ; {var_name}\n')

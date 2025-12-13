@@ -397,6 +397,62 @@ architecture stack16 {
 			ip = ip + 1;
 		};
 
+		// --- comparison operations (32-bit) ---
+
+		// equal: pop b, pop a, push (a == b ? 1 : 0)
+		instruction eq = { 0100 1011 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 == t0);
+			ip = ip + 1;
+		};
+
+		// not equal: pop b, pop a, push (a != b ? 1 : 0)
+		instruction ne = { 0100 1100 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 != t0);
+			ip = ip + 1;
+		};
+
+		// greater than: pop b, pop a, push (a > b ? 1 : 0)
+		instruction gt = { 0100 1101 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 > t0);
+			ip = ip + 1;
+		};
+
+		// less than: pop b, pop a, push (a < b ? 1 : 0)
+		instruction lt = { 0100 1110 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 < t0);
+			ip = ip + 1;
+		};
+
+		// greater than or equal: pop b, pop a, push (a >= b ? 1 : 0)
+		instruction ge = { 0100 1111 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 >= t0);
+			ip = ip + 1;
+		};
+
+		// less than or equal: pop b, pop a, push (a <= b ? 1 : 0)
+		instruction le = { 0101 0000 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 <= t0);
+			ip = ip + 1;
+		};
+
 	mnemonics:
 		format plain1 is "{1}";
 		format plain0 is "";
@@ -446,5 +502,12 @@ architecture stack16 {
 		mnemonic land() plain0;
 		mnemonic not_u() plain0;
 		mnemonic bnot_u() plain0;
+
+		mnemonic eq() plain0;
+		mnemonic ne() plain0;
+		mnemonic gt() plain0;
+		mnemonic lt() plain0;
+		mnemonic ge() plain0;
+		mnemonic le() plain0;
 }
 

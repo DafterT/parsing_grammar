@@ -78,17 +78,11 @@ main:
     push 0           ; local slot at [bp-4] for result
 
     ; compute (const1 & const2)
-    push 0x3 ; for size
-    call long ; get char addr
-    push 10 ; for size
-    call char ; get char addr
-    stbp -4          ; save result, pop
-
-    ; output result bytes low -> high
-    ldbp -4
+    push 0x3
+    push 0x3
+    gt
     call send_byte             ; byte 0
 
     push 0x0F
-    call send_byte
     call send_byte
     ret
