@@ -340,6 +340,112 @@ begin
     end;
 end;
 
+method test_all_operations()
+var a: int; b: int; c: int;
+    ua: uint; ub: uint; uc: uint;
+    ba: byte; bb: byte; bc: byte;
+    flag1: bool; flag2: bool; result: bool;
+    ch1: char; ch2: char;
+begin
+    a := b + c;
+    a := b - c;
+    a := b * c;
+    a := b / c;
+    a := b % c;
+    
+    ua := ub + uc;
+    ua := ub - uc;
+    ua := ub * uc;
+    ua := ub / uc;
+    ua := ub % uc;
+    
+    a := b << c;
+    a := b >> c;
+    
+    a := b | c;
+    a := b & c;
+    a := b ^ c;
+    
+    ua := ub | uc;
+    ua := ub & uc;
+    ua := ub ^ uc;
+    
+    ba := bb | bc;
+    ba := bb & bc;
+    ba := bb ^ bc;
+    
+    result := flag1 || flag2;
+    result := flag1 && flag2;
+    
+    result := a = b;
+    result := a != b;
+    result := a > b;
+    result := a < b;
+    result := a >= b;
+    result := a <= b;
+    
+    result := ua = ub;
+    result := ua != ub;
+    result := ua > ub;
+    result := ua < ub;
+    result := ua >= ub;
+    result := ua <= ub;
+    
+    result := ch1 = ch2;
+    result := ch1 != ch2;
+    
+    result := !flag1;
+    a := ~b;
+    ua := ~ub;
+    ba := ~bb;
+end;
+
+method test_all_array_types()
+var arr_int: array[] of int;
+    arr_uint: array[] of uint;
+    arr_long: array[] of long;
+    arr_ulong: array[] of ulong;
+    arr_byte: array[] of byte;
+    arr_char: array[] of char;
+    arr_bool: array[] of bool;
+    idx: int;
+    val_int: int;
+    val_uint: uint;
+    val_long: long;
+    val_ulong: ulong;
+    val_byte: byte;
+    val_char: char;
+    val_bool: bool;
+begin
+    arr_int := int(10);
+    val_int := arr_int[idx];
+    arr_int[idx] := val_int;
+    
+    arr_uint := uint(20);
+    val_uint := arr_uint[idx];
+    arr_uint[idx] := val_uint;
+    
+    arr_long := long(30);
+    val_long := arr_long[idx];
+    arr_long[idx] := val_long;
+    
+    arr_ulong := ulong(40);
+    val_ulong := arr_ulong[idx];
+    arr_ulong[idx] := val_ulong;
+    
+    arr_byte := byte(50);
+    val_byte := arr_byte[idx];
+    arr_byte[idx] := val_byte;
+    
+    arr_char := char(60);
+    val_char := arr_char[idx];
+    arr_char[idx] := 'x';
+    
+    arr_bool := bool(70);
+    val_bool := arr_bool[idx];
+    arr_bool[idx] := true;
+end;
+
 method main()
 begin
     test_unary();
@@ -376,4 +482,6 @@ begin
     test_if_with_while();
     test_while_with_break();
     test_complex_branching();
+    test_all_operations();
+    test_all_array_types();
 end;
