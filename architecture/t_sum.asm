@@ -117,13 +117,13 @@ test_int_arithmetic_4:
     jmp test_int_arithmetic_5
 test_int_arithmetic_5:
     ldbp -8
-    ldbp -12
+    push 2 ; dec = 2
     div
     stbp -4
     jmp test_int_arithmetic_6
 test_int_arithmetic_6:
     ldbp -8
-    ldbp -12
+    push 2 ; dec = 2
     mod
     stbp -4
     jmp test_int_arithmetic_1
@@ -158,13 +158,13 @@ test_uint_arithmetic_4:
     jmp test_uint_arithmetic_5
 test_uint_arithmetic_5:
     ldbp -8
-    ldbp -12
+    push 2 ; dec = 2
     div
     stbp -4
     jmp test_uint_arithmetic_6
 test_uint_arithmetic_6:
     ldbp -8
-    ldbp -12
+    push 2 ; dec = 2
     mod
     stbp -4
     jmp test_uint_arithmetic_1
@@ -222,7 +222,7 @@ test_ulong_arithmetic_3:
     jmp test_ulong_arithmetic_4
 test_ulong_arithmetic_4:
     ldbp -8
-    ldbp -12
+    push 2 ; dec = 2
     div
     stbp -4
     jmp test_ulong_arithmetic_1
@@ -508,12 +508,14 @@ test_int_array_0:
 test_int_array_1:
     jmp test_int_array_out
 test_int_array_2:
+    push 10 ; dec = 10
+    call int
     stbp -4
     jmp test_int_array_3
 test_int_array_3:
     ldbp -4
     ldbp -8
-    push 2
+    push 1
     shl
     add
     load2
@@ -522,10 +524,11 @@ test_int_array_3:
 test_int_array_4:
     ldbp -4
     ldbp -8
-    push 2
+    push 1
     shl
     add
     ldbp -12
+    push 1 ; dec = 1
     add
     store2
     jmp test_int_array_1
@@ -541,12 +544,14 @@ test_uint_array_0:
 test_uint_array_1:
     jmp test_uint_array_out
 test_uint_array_2:
+    push 20 ; dec = 20
+    call uint
     stbp -4
     jmp test_uint_array_3
 test_uint_array_3:
     ldbp -4
     ldbp -8
-    push 2
+    push 1
     shl
     add
     load2
@@ -555,10 +560,11 @@ test_uint_array_3:
 test_uint_array_4:
     ldbp -4
     ldbp -8
-    push 2
+    push 1
     shl
     add
     ldbp -12
+    push 1 ; dec = 1
     add
     store2
     jmp test_uint_array_1
@@ -574,13 +580,13 @@ test_byte_array_0:
 test_byte_array_1:
     jmp test_byte_array_out
 test_byte_array_2:
+    push 256 ; dec = 256
+    call byte
     stbp -4
     jmp test_byte_array_3
 test_byte_array_3:
     ldbp -4
     ldbp -8
-    push 1
-    shl
     add
     load1
     stbp -12
@@ -588,10 +594,9 @@ test_byte_array_3:
 test_byte_array_4:
     ldbp -4
     ldbp -8
-    push 1
-    shl
     add
     ldbp -12
+    push 1 ; dec = 1
     add
     store1
     jmp test_byte_array_1
@@ -607,13 +612,13 @@ test_char_array_0:
 test_char_array_1:
     jmp test_char_array_out
 test_char_array_2:
+    push 100 ; dec = 100
+    call char
     stbp -4
     jmp test_char_array_3
 test_char_array_3:
     ldbp -4
     ldbp -8
-    push 1
-    shl
     add
     load1
     stbp -12
@@ -621,9 +626,8 @@ test_char_array_3:
 test_char_array_4:
     ldbp -4
     ldbp -8
-    push 1
-    shl
     add
+    push 120 ; char = 'x'
     store1
     jmp test_char_array_1
 test_char_array_out:
@@ -682,6 +686,11 @@ test_call_int_0:
 test_call_int_1:
     jmp test_call_int_out
 test_call_int_2:
+    ldbp -4
+    ldbp -8
+    call add_ints
+    drop
+    drop
     jmp test_call_int_1
 test_call_int_out:
     ret
@@ -694,6 +703,11 @@ test_call_uint_0:
 test_call_uint_1:
     jmp test_call_uint_out
 test_call_uint_2:
+    ldbp -4
+    ldbp -8
+    call add_uints
+    drop
+    drop
     jmp test_call_uint_1
 test_call_uint_out:
     ret
@@ -706,6 +720,11 @@ test_call_long_0:
 test_call_long_1:
     jmp test_call_long_out
 test_call_long_2:
+    ldbp -4
+    ldbp -8
+    call add_longs
+    drop
+    drop
     jmp test_call_long_1
 test_call_long_out:
     ret
@@ -720,24 +739,57 @@ test_literals_0:
 test_literals_1:
     jmp test_literals_out
 test_literals_2:
+    push 42 ; dec = 42
     stbp -4
     jmp test_literals_3
 test_literals_3:
+    push 255 ; hex = 0xFF
     stbp -4
     jmp test_literals_4
 test_literals_4:
+    push 10 ; bits = 0b1010
     stbp -4
     jmp test_literals_5
 test_literals_5:
+    push 1 ; bool = true
     stbp -8
     jmp test_literals_6
 test_literals_6:
+    push 0 ; bool = false
     stbp -8
     jmp test_literals_7
 test_literals_7:
+    push 120 ; char = 'x'
     stbp -12
     jmp test_literals_8
 test_literals_8:
+    push 5 ; string = hello
+    call byte
+    dup
+    push 0
+    add
+    push 104 ; char = h
+    store1
+    dup
+    push 1
+    add
+    push 101 ; char = e
+    store1
+    dup
+    push 2
+    add
+    push 108 ; char = l
+    store1
+    dup
+    push 3
+    add
+    push 108 ; char = l
+    store1
+    dup
+    push 4
+    add
+    push 111 ; char = o
+    store1
     stbp -16
     jmp test_literals_1
 test_literals_out:
@@ -784,66 +836,81 @@ test_literals_auto_type_0:
 test_literals_auto_type_1:
     jmp test_literals_auto_type_out
 test_literals_auto_type_2:
+    push 42 ; dec = 42
     stbp -4
     jmp test_literals_auto_type_3
 test_literals_auto_type_3:
     ldbp -4
+    push 1 ; dec = 1
     add
     stbp -4
     jmp test_literals_auto_type_4
 test_literals_auto_type_4:
+    push 1 ; dec = 1
     ldbp -4
     add
     stbp -4
     jmp test_literals_auto_type_5
 test_literals_auto_type_5:
+    push 100 ; dec = 100
     stbp -8
     jmp test_literals_auto_type_6
 test_literals_auto_type_6:
     ldbp -8
+    push 1 ; dec = 1
     add
     stbp -8
     jmp test_literals_auto_type_7
 test_literals_auto_type_7:
+    push 1 ; dec = 1
     ldbp -8
     add
     stbp -8
     jmp test_literals_auto_type_8
 test_literals_auto_type_8:
+    push 1000 ; dec = 1000
     stbp -12
     jmp test_literals_auto_type_9
 test_literals_auto_type_9:
     ldbp -12
+    push 1 ; dec = 1
     add
     stbp -12
     jmp test_literals_auto_type_10
 test_literals_auto_type_10:
+    push 1 ; dec = 1
     ldbp -12
     add
     stbp -12
     jmp test_literals_auto_type_11
 test_literals_auto_type_11:
+    push 10000 ; dec = 10000
     stbp -16
     jmp test_literals_auto_type_12
 test_literals_auto_type_12:
     ldbp -16
+    push 1 ; dec = 1
     add
     stbp -16
     jmp test_literals_auto_type_13
 test_literals_auto_type_13:
+    push 1 ; dec = 1
     ldbp -16
     add
     stbp -16
     jmp test_literals_auto_type_14
 test_literals_auto_type_14:
+    push 255 ; dec = 255
     stbp -20
     jmp test_literals_auto_type_15
 test_literals_auto_type_15:
     ldbp -20
+    push 1 ; dec = 1
     add
     stbp -20
     jmp test_literals_auto_type_16
 test_literals_auto_type_16:
+    push 1 ; dec = 1
     ldbp -20
     add
     stbp -20
@@ -858,9 +925,14 @@ test_generated_functions_0:
 test_generated_functions_1:
     jmp test_generated_functions_out
 test_generated_functions_2:
+    push 0  ; for return value
+    call read_byte
     stbp -4
     jmp test_generated_functions_3
 test_generated_functions_3:
+    ldbp -4
+    call send_byte
+    drop
     jmp test_generated_functions_1
 test_generated_functions_out:
     ret
@@ -872,13 +944,40 @@ test_strings_0:
 test_strings_1:
     jmp test_strings_out
 test_strings_2:
+    push 5 ; string = 12312
+    call byte
+    dup
+    push 0
+    add
+    push 49 ; char = 1
+    store1
+    dup
+    push 1
+    add
+    push 50 ; char = 2
+    store1
+    dup
+    push 2
+    add
+    push 51 ; char = 3
+    store1
+    dup
+    push 3
+    add
+    push 49 ; char = 1
+    store1
+    dup
+    push 4
+    add
+    push 50 ; char = 2
+    store1
     stbp -4
     jmp test_strings_3
 test_strings_3:
     ldbp -4
-    push 1
-    shl
+    push 5 ; dec = 5
     add
+    push 49 ; char = '1'
     store1
     jmp test_strings_1
 test_strings_out:
@@ -898,6 +997,7 @@ test_if_then_2:
     jnz test_if_then_3
     jmp test_if_then_4
 test_if_then_3:
+    push 10 ; dec = 10
     stbp -4
     jmp test_if_then_4
 test_if_then_4:
@@ -920,11 +1020,13 @@ test_if_then_else_2:
     jnz test_if_then_else_3
     jmp test_if_then_else_5
 test_if_then_else_3:
+    push 1 ; dec = 1
     stbp -12
     jmp test_if_then_else_4
 test_if_then_else_4:
     jmp test_if_then_else_1
 test_if_then_else_5:
+    push 0 ; dec = 0
     stbp -12
     jmp test_if_then_else_4
 test_if_then_else_out:
@@ -939,6 +1041,7 @@ test_while_do_1:
     jmp test_while_do_out
 test_while_do_2:
     ldbp -4
+    push 0 ; dec = 0
     gt
     jnz test_while_do_4
     jmp test_while_do_3
@@ -956,6 +1059,7 @@ test_while_do_6:
     jmp test_while_do_7
 test_while_do_7:
     ldbp -4
+    push 1 ; dec = 1
     sub
     stbp -4
     jmp test_while_do_5
@@ -974,11 +1078,13 @@ test_repeat_while_3:
     jmp test_repeat_while_1
 test_repeat_while_4:
     ldbp -4
+    push 1 ; dec = 1
     add
     stbp -4
     jmp test_repeat_while_5
 test_repeat_while_5:
     ldbp -4
+    push 10 ; dec = 10
     lt
     jnz test_repeat_while_2
     jmp test_repeat_while_3
@@ -997,11 +1103,13 @@ test_repeat_until_3:
     jmp test_repeat_until_1
 test_repeat_until_4:
     ldbp -4
+    push 1 ; dec = 1
     add
     stbp -4
     jmp test_repeat_until_5
 test_repeat_until_5:
     ldbp -4
+    push 10 ; dec = 10
     ge
     jnz test_repeat_until_3
     jmp test_repeat_until_2
@@ -1019,35 +1127,42 @@ test_nested_if_1:
     jmp test_nested_if_out
 test_nested_if_2:
     ldbp -4
+    push 0 ; dec = 0
     gt
     jnz test_nested_if_3
     jmp test_nested_if_8
 test_nested_if_3:
     ldbp -8
+    push 0 ; dec = 0
     gt
     jnz test_nested_if_4
     jmp test_nested_if_6
 test_nested_if_4:
+    push 1 ; dec = 1
     stbp -16
     jmp test_nested_if_5
 test_nested_if_5:
     jmp test_nested_if_7
 test_nested_if_6:
+    push 2 ; dec = 2
     stbp -16
     jmp test_nested_if_5
 test_nested_if_7:
     jmp test_nested_if_1
 test_nested_if_8:
     ldbp -12
+    push 0 ; dec = 0
     gt
     jnz test_nested_if_9
     jmp test_nested_if_11
 test_nested_if_9:
+    push 3 ; dec = 3
     stbp -16
     jmp test_nested_if_10
 test_nested_if_10:
     jmp test_nested_if_7
 test_nested_if_11:
+    push 4 ; dec = 4
     stbp -16
     jmp test_nested_if_10
 test_nested_if_out:
@@ -1071,6 +1186,7 @@ test_if_with_while_4:
     jmp test_if_with_while_11
 test_if_with_while_5:
     ldbp -4
+    push 0 ; dec = 0
     gt
     jnz test_if_with_while_7
     jmp test_if_with_while_6
@@ -1082,11 +1198,13 @@ test_if_with_while_8:
     jmp test_if_with_while_5
 test_if_with_while_9:
     ldbp -12
+    push 1 ; dec = 1
     add
     stbp -12
     jmp test_if_with_while_10
 test_if_with_while_10:
     ldbp -4
+    push 1 ; dec = 1
     sub
     stbp -4
     jmp test_if_with_while_8
@@ -1103,6 +1221,7 @@ test_while_with_break_1:
     jmp test_while_with_break_out
 test_while_with_break_2:
     ldbp -4
+    push 100 ; dec = 100
     lt
     jnz test_while_with_break_4
     jmp test_while_with_break_3
@@ -1114,6 +1233,7 @@ test_while_with_break_5:
     jmp test_while_with_break_2
 test_while_with_break_6:
     ldbp -4
+    push 50 ; dec = 50
     eq
     jnz test_while_with_break_7
     jmp test_while_with_break_8
@@ -1123,6 +1243,7 @@ test_while_with_break_8:
     jmp test_while_with_break_9
 test_while_with_break_9:
     ldbp -4
+    push 1 ; dec = 1
     add
     stbp -4
     jmp test_while_with_break_5
@@ -1180,6 +1301,7 @@ test_complex_branching_11:
     jmp test_complex_branching_10
 test_complex_branching_12:
     ldbp -16
+    push 0 ; dec = 0
     gt
     jnz test_complex_branching_14
     jmp test_complex_branching_13
@@ -1191,12 +1313,15 @@ test_complex_branching_15:
     jmp test_complex_branching_12
 test_complex_branching_16:
     ldbp -16
+    push 2 ; dec = 2
     mod
+    push 0 ; dec = 0
     eq
     jnz test_complex_branching_17
     jmp test_complex_branching_19
 test_complex_branching_17:
     ldbp -16
+    push 2 ; dec = 2
     div
     stbp -16
     jmp test_complex_branching_18
@@ -1204,6 +1329,7 @@ test_complex_branching_18:
     jmp test_complex_branching_15
 test_complex_branching_19:
     ldbp -16
+    push 1 ; dec = 1
     sub
     stbp -16
     jmp test_complex_branching_18
@@ -1249,13 +1375,13 @@ test_all_operations_4:
     jmp test_all_operations_5
 test_all_operations_5:
     ldbp -8
-    ldbp -12
+    push 2 ; dec = 2
     div
     stbp -4
     jmp test_all_operations_6
 test_all_operations_6:
     ldbp -8
-    ldbp -12
+    push 2 ; dec = 2
     mod
     stbp -4
     jmp test_all_operations_7
@@ -1279,13 +1405,13 @@ test_all_operations_9:
     jmp test_all_operations_10
 test_all_operations_10:
     ldbp -20
-    ldbp -24
+    push 2 ; dec = 2
     div
     stbp -16
     jmp test_all_operations_11
 test_all_operations_11:
     ldbp -20
-    ldbp -24
+    push 2 ; dec = 2
     mod
     stbp -16
     jmp test_all_operations_12
@@ -1495,12 +1621,14 @@ test_all_array_types_0:
 test_all_array_types_1:
     jmp test_all_array_types_out
 test_all_array_types_2:
+    push 10 ; dec = 10
+    call int
     stbp -4
     jmp test_all_array_types_3
 test_all_array_types_3:
     ldbp -4
     ldbp -32
-    push 2
+    push 1
     shl
     add
     load2
@@ -1509,19 +1637,21 @@ test_all_array_types_3:
 test_all_array_types_4:
     ldbp -4
     ldbp -32
-    push 2
+    push 1
     shl
     add
     ldbp -36
     store2
     jmp test_all_array_types_5
 test_all_array_types_5:
+    push 20 ; dec = 20
+    call uint
     stbp -8
     jmp test_all_array_types_6
 test_all_array_types_6:
     ldbp -8
     ldbp -32
-    push 2
+    push 1
     shl
     add
     load2
@@ -1530,19 +1660,21 @@ test_all_array_types_6:
 test_all_array_types_7:
     ldbp -8
     ldbp -32
-    push 2
+    push 1
     shl
     add
     ldbp -40
     store2
     jmp test_all_array_types_8
 test_all_array_types_8:
+    push 30 ; dec = 30
+    call long
     stbp -12
     jmp test_all_array_types_9
 test_all_array_types_9:
     ldbp -12
     ldbp -32
-    push 4
+    push 2
     shl
     add
     load
@@ -1551,19 +1683,21 @@ test_all_array_types_9:
 test_all_array_types_10:
     ldbp -12
     ldbp -32
-    push 4
+    push 2
     shl
     add
     ldbp -44
     store
     jmp test_all_array_types_11
 test_all_array_types_11:
+    push 40 ; dec = 40
+    call ulong
     stbp -16
     jmp test_all_array_types_12
 test_all_array_types_12:
     ldbp -16
     ldbp -32
-    push 4
+    push 2
     shl
     add
     load
@@ -1572,20 +1706,20 @@ test_all_array_types_12:
 test_all_array_types_13:
     ldbp -16
     ldbp -32
-    push 4
+    push 2
     shl
     add
     ldbp -48
     store
     jmp test_all_array_types_14
 test_all_array_types_14:
+    push 50 ; dec = 50
+    call byte
     stbp -20
     jmp test_all_array_types_15
 test_all_array_types_15:
     ldbp -20
     ldbp -32
-    push 1
-    shl
     add
     load1
     stbp -52
@@ -1593,20 +1727,18 @@ test_all_array_types_15:
 test_all_array_types_16:
     ldbp -20
     ldbp -32
-    push 1
-    shl
     add
     ldbp -52
     store1
     jmp test_all_array_types_17
 test_all_array_types_17:
+    push 60 ; dec = 60
+    call char
     stbp -24
     jmp test_all_array_types_18
 test_all_array_types_18:
     ldbp -24
     ldbp -32
-    push 1
-    shl
     add
     load1
     stbp -56
@@ -1614,19 +1746,18 @@ test_all_array_types_18:
 test_all_array_types_19:
     ldbp -24
     ldbp -32
-    push 1
-    shl
     add
+    push 120 ; char = 'x'
     store1
     jmp test_all_array_types_20
 test_all_array_types_20:
+    push 70 ; dec = 70
+    call bool
     stbp -28
     jmp test_all_array_types_21
 test_all_array_types_21:
     ldbp -28
     ldbp -32
-    push 1
-    shl
     add
     load1
     stbp -60
@@ -1634,9 +1765,8 @@ test_all_array_types_21:
 test_all_array_types_22:
     ldbp -28
     ldbp -32
-    push 1
-    shl
     add
+    push 1 ; bool = true
     store1
     jmp test_all_array_types_1
 test_all_array_types_out:
@@ -1648,76 +1778,112 @@ main_0:
 main_1:
     jmp main_out
 main_2:
+    call test_unary
     jmp main_3
 main_3:
+    call test_int_arithmetic
     jmp main_4
 main_4:
+    call test_uint_arithmetic
     jmp main_5
 main_5:
+    call test_long_arithmetic
     jmp main_6
 main_6:
+    call test_ulong_arithmetic
     jmp main_7
 main_7:
+    call test_byte_arithmetic
     jmp main_8
 main_8:
+    call test_int_bitwise
     jmp main_9
 main_9:
+    call test_uint_bitwise
     jmp main_10
 main_10:
+    call test_byte_bitwise
     jmp main_11
 main_11:
+    call test_logical
     jmp main_12
 main_12:
+    call test_int_comparison
     jmp main_13
 main_13:
+    call test_uint_comparison
     jmp main_14
 main_14:
+    call test_char_comparison
     jmp main_15
 main_15:
+    call test_int_array
     jmp main_16
 main_16:
+    call test_uint_array
     jmp main_17
 main_17:
+    call test_byte_array
     jmp main_18
 main_18:
+    call test_char_array
     jmp main_19
 main_19:
+    call test_call_int
     jmp main_20
 main_20:
+    call test_call_uint
     jmp main_21
 main_21:
+    call test_call_long
     jmp main_22
 main_22:
+    call test_literals
     jmp main_23
 main_23:
+    call test_nested_expr
     jmp main_24
 main_24:
+    call test_literals_auto_type
     jmp main_25
 main_25:
+    call test_generated_functions
     jmp main_26
 main_26:
+    call test_strings
     jmp main_27
 main_27:
+    call test_if_then
     jmp main_28
 main_28:
+    call test_if_then_else
     jmp main_29
 main_29:
+    call test_while_do
     jmp main_30
 main_30:
+    call test_repeat_while
     jmp main_31
 main_31:
+    call test_repeat_until
     jmp main_32
 main_32:
+    call test_nested_if
     jmp main_33
 main_33:
+    call test_if_with_while
     jmp main_34
 main_34:
+    call test_while_with_break
     jmp main_35
 main_35:
+    call test_complex_branching
     jmp main_36
 main_36:
+    call test_all_operations
     jmp main_37
 main_37:
+    call test_all_array_types
     jmp main_1
 main_out:
     ret

@@ -93,12 +93,21 @@ def process_un_op(tree, params_dict, f, vars_dict, un_op_type):
     f.write(f'    {asm_command}\n')
 
 TYPE_TO_SHIFT = {
-    "bool": 1,    # 1 byte
-    "byte": 1,    # 1 byte
-    "int": 2,     # 2 bytes
-    "uint": 2,    # 2 bytes
-    "long": 4,    # 4 bytes
-    "ulong": 4,   # 4 bytes
+    "bool": 0,    # 1 byte
+    "byte": 0,    # 1 byte
+    "int": 1,     # 2 bytes
+    "uint": 1,    # 2 bytes
+    "long": 2,    # 4 bytes
+    "ulong": 2,   # 4 bytes
+}
+
+LOAD_TYPE = {
+    "bool": '1',    # 1 byte
+    "byte": '1',    # 1 byte
+    "int": '2',     # 2 bytes
+    "uint": '2',    # 2 bytes
+    "long": '',    # 4 bytes
+    "ulong": '',   # 4 bytes
 }
 
 def process_index_op(tree, params_dict, f, vars_dict):
@@ -106,10 +115,12 @@ def process_index_op(tree, params_dict, f, vars_dict):
     process_ast(tree.children[0], params_dict, f, vars_dict)
     process_ast(tree.children[1], params_dict, f, vars_dict)
     shift = TYPE_TO_SHIFT.get(tree.type)
-    f.write(f'    push {shift}\n')
-    f.write(f'    shl\n')
+    if shift != 0:
+        f.write(f'    push {shift}\n')
+        f.write(f'    shl\n')
     f.write(f'    add\n')
-    f.write(f'    load{shift if shift != 4 else ''}\n')
+    load = LOAD_TYPE.get(tree.type)
+    f.write(f'    load{load}\n') # TODO check
 
 def process_load_op(tree, params_dict, f, vars_dict, var_name):
     assert len(tree.children) == 0
@@ -132,11 +143,13 @@ def process_store_at_op(tree, params_dict, f, vars_dict, var_name):
     f.write(f'    ldbp {var[1]}\n')
     process_ast(tree.children[0], params_dict, f, vars_dict)
     shift = TYPE_TO_SHIFT.get(var[0].split(' ')[-1])
-    f.write(f'    push {shift}\n')
-    f.write(f'    shl\n')
+    if shift != 0:
+        f.write(f'    push {shift}\n')
+        f.write(f'    shl\n')
     f.write(f'    add\n')
     process_ast(tree.children[1], params_dict, f, vars_dict)
-    f.write(f'    store{shift if shift != 4 else ''}\n')
+    load = LOAD_TYPE.get(tree.type)
+    f.write(f'    store{load}\n')
 
 def process_call_op(tree, params_dict, f, vars_dict, func_name):
     has_return = BUILTIN_RETURNS.get(func_name, False)
@@ -154,8 +167,37 @@ def process_call_op(tree, params_dict, f, vars_dict, func_name):
             f.write(f'    swap\n')
         f.write(f'    drop\n')
 
-def process_const_op():
-    pass
+def process_const_op(tree, params_dict, f, vars_dict, const_name, const_val):
+    assert len(tree.children) == 0 
+    match const_name:
+        case 'bool':
+            val_for_push = 0 if const_val.lower() == 'false' else 1
+            f.write(f'    push {val_for_push} ; bool = {const_val.lower()}\n')
+        case 'char':
+            val_for_push = ord(const_val[1])
+            f.write(f'    push {val_for_push} ; char = {const_val}\n')
+        case 'hex':
+            val_for_push = int(const_val[2:], 16)
+            f.write(f'    push {val_for_push} ; hex = {const_val}\n')
+        case 'bits':
+            val_for_push = int(const_val[2:], 2)
+            f.write(f'    push {val_for_push} ; bits = {const_val}\n')
+        case 'dec':
+            val_for_push = int(const_val)
+            f.write(f'    push {val_for_push} ; dec = {const_val}\n')
+        case 'str':
+            val_for_push = const_val[1:-1]
+            f.write(f'    push {len(val_for_push)} ; string = {val_for_push}\n')
+            f.write(f'    call byte\n') # Создал масив байтов нужного размера
+            for index, symbol in enumerate(val_for_push):
+                f.write(f'    dup\n')
+                f.write(f'    push {index}\n')
+                f.write(f'    add\n')
+                f.write(f'    push {ord(symbol)} ; char = {symbol}\n')
+                f.write(f'    store1\n')
+        case '_':
+            raise ValueError(f"Неизвестное обозначение {const_name}")
+        
 
 STORE_RE = re.compile(r'^store\(([A-Za-z_][A-Za-z_0-9]*)\)$')
 BIN_OP_RE = re.compile(r'^(<<|>>|<=|>=|=|!=|\+|-|\*|/|%|&|\||\^|<|>|\|\||&&)$')
@@ -207,11 +249,10 @@ def process_ast(tree, params_dict, f, vars_dict):
     
     const_match = CONST_RE.match(tree.label)
     if const_match:
-        return
         process_const_op(tree, params_dict, f, vars_dict, const_match.group(1), const_match.group(2))
         return
-    #const
-    pass
+    
+    raise ValueError(f"Неизвестный элемент {tree.label}")
 
 def process_block(f_name, block, params_dict, f, vars_dict):
     f.write(f'{f_name}_{block.id}:\n')

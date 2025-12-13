@@ -10,8 +10,8 @@ begin
     a := b + c;
     a := b - c;
     a := b * c;
-    a := b / c;
-    a := b % c;
+    a := b / 2;
+    a := b % 2;
 end;
 
 method test_uint_arithmetic()
@@ -20,8 +20,8 @@ begin
     a := b + c;
     a := b - c;
     a := b * c;
-    a := b / c;
-    a := b % c;
+    a := b / 2;
+    a := b % 2;
 end;
 
 method test_long_arithmetic()
@@ -37,7 +37,7 @@ var a: ulong; b: ulong; c: ulong;
 begin
     a := b + c;
     a := b * c;
-    a := b / c;
+    a := b / 2;
 end;
 
 method test_byte_arithmetic()
@@ -350,14 +350,14 @@ begin
     a := b + c;
     a := b - c;
     a := b * c;
-    a := b / c;
-    a := b % c;
+    a := b / 2;
+    a := b % 2;
     
     ua := ub + uc;
     ua := ub - uc;
     ua := ub * uc;
-    ua := ub / uc;
-    ua := ub % uc;
+    ua := ub / 2;
+    ua := ub % 2;
     
     a := b << c;
     a := b >> c;
