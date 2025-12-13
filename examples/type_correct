@@ -236,6 +236,110 @@ begin
     i[5] := '1';
 end;
 
+method test_if_then()
+var a: int; b: int;
+begin
+    if a > b then
+        a := 10;
+end;
+
+method test_if_then_else()
+var a: int; b: int; c: int;
+begin
+    if a > b then
+        c := 1;
+    else
+        c := 0;
+end;
+
+method test_while_do()
+var i: int; sum: int;
+begin
+    while i > 0 do
+    begin
+        sum := sum + i;
+        i := i - 1;
+    end;
+end;
+
+method test_repeat_while()
+var i: int;
+begin
+    repeat
+        i := i + 1;
+    while i < 10;
+end;
+
+method test_repeat_until()
+var i: int;
+begin
+    repeat
+        i := i + 1;
+    until i >= 10;
+end;
+
+method test_nested_if()
+var a: int; b: int; c: int; result: int;
+begin
+    if a > 0 then
+        if b > 0 then
+            result := 1;
+        else
+            result := 2;
+    else
+        if c > 0 then
+            result := 3;
+        else
+            result := 4;
+end;
+
+method test_if_with_while()
+var i: int; flag: bool; count: int;
+begin
+    if flag then
+    begin
+        while i > 0 do
+        begin
+            count := count + 1;
+            i := i - 1;
+        end;
+    end;
+end;
+
+method test_while_with_break()
+var i: int;
+begin
+    while i < 100 do
+    begin
+        if i = 50 then
+            break;
+        i := i + 1;
+    end;
+end;
+
+method test_complex_branching()
+var x: int; y: int; z: int; result: int;
+begin
+    if x > y then
+        if x > z then
+            result := x;
+        else
+            result := z;
+    else
+        if y > z then
+            result := y;
+        else
+            result := z;
+    
+    while result > 0 do
+    begin
+        if result % 2 = 0 then
+            result := result / 2;
+        else
+            result := result - 1;
+    end;
+end;
+
 method main()
 begin
     test_unary();
@@ -263,4 +367,13 @@ begin
     test_literals_auto_type();
     test_generated_functions();
     test_strings();
+    test_if_then();
+    test_if_then_else();
+    test_while_do();
+    test_repeat_while();
+    test_repeat_until();
+    test_nested_if();
+    test_if_with_while();
+    test_while_with_break();
+    test_complex_branching();
 end;
