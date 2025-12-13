@@ -75,14 +75,13 @@ char:            ; Builtin constructor: char(size) -> array[] of char
      ret
 
 main: 
-    push 0           ; local slot at [bp-4] for result
+    push 0
+    jz print
 
-    ; compute (const1 & const2)
-    push 0x3
-    push 0x3
-    gt
-    call send_byte             ; byte 0
-
-    push 0x0F
-    call send_byte
+out:
     ret
+
+print:
+     push 49
+     outb
+     jmp out

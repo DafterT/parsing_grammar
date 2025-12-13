@@ -50,9 +50,9 @@ architecture stack16 {
 
 		// jump if top-of-stack == 0; pops 1 word
 		instruction jz = { 0001 0001, imm16 as target } {
-			t0 = dmem:2[sp];   // use temp
-			sp = sp + 2;
-			when t0 then
+			t0 = dmem:4[sp];   // use temp
+			sp = sp + 4;
+			if t0 != 0 then
 				ip = ip + 3;   // non-zero -> no jump
 			else
 				ip = target;   // zero -> jump
@@ -60,9 +60,9 @@ architecture stack16 {
 
 		// jump if top-of-stack != 0; pops 1 word
 		instruction jnz = { 0001 0010, imm16 as target } {
-			t0 = dmem:2[sp];   // use temp
-			sp = sp + 2;
-			when t0 then
+			t0 = dmem:4[sp];   // use temp
+			sp = sp + 4;
+			if t0 != 0 then
 				ip = target;   // non-zero -> jump
 			else
 				ip = ip + 3;   // zero -> skip jump
