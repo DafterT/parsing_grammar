@@ -178,6 +178,14 @@ architecture stack16 {
 			ip = ip + 1;
 		};
 
+		// duplicate top of stack: push copy of top element
+		instruction dup = { 0010 0010 } {
+			t0 = dmem:4[sp];   // read top element
+			sp = sp - 4;        // allocate space for duplicate
+			dmem:4[sp] = t0;    // write duplicate
+			ip = ip + 1;
+		};
+
 
 		// sp = sp + imm16 (sign-extend via xor/sub)
 		instruction addi_sp = { 0010 0111, imm16 as value } {
@@ -480,6 +488,7 @@ architecture stack16 {
 		mnemonic outb() plain0;
 
 		mnemonic swap() plain0;
+		mnemonic dup() plain0;
 		mnemonic addi_sp(value) plain1;
 		mnemonic addhp() plain0;
 		mnemonic pushbp() plain0;
