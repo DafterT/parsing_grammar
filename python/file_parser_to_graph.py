@@ -60,7 +60,12 @@ BUILTIN_TYPES = {
     'bool', 'byte', 'int', 'uint', 'long', 'ulong', 'char'
 }
 BUILTIN_FUNCTIONS = {
-    'read_byte', 'send_byte', *BUILTIN_TYPES
+    'read_byte', 'send_byte', *BUILTIN_TYPES,
+    'bool_to_byte', 'byte_to_bool',
+    'byte_to_int', 'int_to_byte',
+    'int_to_uint', 'uint_to_int',
+    'int_to_long', 'long_to_int',
+    'long_to_ulong', 'ulong_to_long'
 }
 
 

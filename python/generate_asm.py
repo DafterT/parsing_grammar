@@ -7,6 +7,16 @@ import re
 BUILTIN_RETURNS = {
     'read_byte': True,  # возвращает byte
     'send_byte': False,  # не возвращает значение
+    'bool_to_byte': True,  # возвращает byte
+    'byte_to_bool': True,  # возвращает bool
+    'byte_to_int': True,  # возвращает int
+    'int_to_byte': True,  # возвращает byte
+    'int_to_uint': True,  # возвращает uint
+    'uint_to_int': True,  # возвращает int
+    'int_to_long': True,  # возвращает long
+    'long_to_int': True,  # возвращает int
+    'long_to_ulong': True,  # возвращает ulong
+    'ulong_to_long': True,  # возвращает long
 }
 # Конструкторы типов возвращают массивы
 for t_name in BUILTIN_TYPES:
@@ -36,6 +46,16 @@ def generate_builtin_func(out_file):
     generate_long_constructor(out_file)
     generate_ulong_constructor(out_file)
     generate_char_constructor(out_file)
+    generate_bool_to_byte(out_file)
+    generate_byte_to_bool(out_file)
+    generate_byte_to_int(out_file)
+    generate_int_to_byte(out_file)
+    generate_int_to_uint(out_file)
+    generate_uint_to_int(out_file)
+    generate_int_to_long(out_file)
+    generate_long_to_int(out_file)
+    generate_long_to_ulong(out_file)
+    generate_ulong_to_long(out_file)
 
 def process_store(tree, params_dict, f, vars_dict, var):
     assert len(tree.children) == 1
@@ -79,6 +99,13 @@ def process_bin_op(tree, params_dict, f, vars_dict, bin_op_type):
         raise ValueError(f"Не обработанная бинарная инструкция {bin_op_type}")
     f.write(f'    {asm_command}\n')
     
+    # Применяем маску для арифметических и битовых операций над целочисленными типами
+    # Не применяем маску для логических операций (||, &&) и операций сравнения
+    arithmetic_ops = {'+', '-', '*', '/', '%'}
+    bitwise_ops = {'<<', '>>', '|', '&', '^'}
+    if bin_op_type in arithmetic_ops or bin_op_type in bitwise_ops:
+        apply_type_mask(f, tree.type)
+    
 UNOP_TO_CMD = {
     "!": "not_u",
     "~": "bnot_u",
@@ -91,6 +118,11 @@ def process_un_op(tree, params_dict, f, vars_dict, un_op_type):
     if asm_command is None:
         raise ValueError(f"Не обработанная унарная инструкция {un_op_type}")
     f.write(f'    {asm_command}\n')
+    
+    # Применяем маску для битовых унарных операций над целочисленными типами
+    # Не применяем маску для логических операций (!)
+    if un_op_type == '~':  # битовая инверсия
+        apply_type_mask(f, tree.type)
 
 TYPE_TO_SHIFT = {
     "bool": 0,    # 1 byte
@@ -109,6 +141,35 @@ LOAD_TYPE = {
     "long": '',    # 4 bytes
     "ulong": '',   # 4 bytes
 }
+
+# Маски для ограничения размера типов
+# Применяются после арифметических и битовых операций
+# 32-битные типы (long, ulong) не маскируются, так как они уже занимают полное слово
+TYPE_TO_MASK = {
+    "bool": 0xFF,        # 8 bits
+    "byte": 0xFF,        # 8 bits
+    "int": 0xFFFF,       # 16 bits (знаковый)
+    "uint": 0xFFFF,      # 16 bits (беззнаковый)
+}
+
+def get_type_mask(type_str):
+    """Возвращает значение маски для типа или None, если маска не нужна."""
+    if type_str is None:
+        return None
+    # Нормализуем тип (убираем пробелы, приводим к нижнему регистру)
+    type_str = type_str.strip().lower()
+    # Массивы - это указатели, их не маскируем
+    # При обращении к элементам массива тип уже будет типом элемента, а не массива
+    if 'array' in type_str:
+        return None
+    return TYPE_TO_MASK.get(type_str)
+
+def apply_type_mask(f, type_str):
+    """Применяет маску к результату на стеке, если это необходимо."""
+    mask = get_type_mask(type_str)
+    if mask is not None :
+        f.write(f'    push {mask}  ; mask for {type_str}\n')
+        f.write(f'    band        ; apply type mask\n')
 
 def process_index_op(tree, params_dict, f, vars_dict):
     assert len(tree.children) == 2

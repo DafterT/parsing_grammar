@@ -74,6 +74,52 @@ char:                   ; Builtin constructor: char(size) -> array[] of char
      stbp 8             ; store result at [bp+8] and pop
      ret
 
+bool_to_byte:    ; Builtin function: bool_to_byte(b: bool) -> byte
+    ret          ; value already at [bp+8], no conversion needed
+
+byte_to_bool:    ; Builtin function: byte_to_bool(b: byte) -> bool
+    ret          ; value already at [bp+8], no conversion needed
+
+byte_to_int:     ; Builtin function: byte_to_int(b: byte) -> int
+    ret          ; value already at [bp+8], already zero-extended to 32 bits
+
+int_to_byte:     ; Builtin function: int_to_byte(i: int) -> byte
+    ldbp 8       ; load int value from [bp+8]
+    push 0xFF    ; mask for byte (8 bits)
+    band         ; apply mask
+    stbp 8       ; store result at [bp+8]
+    ret
+
+int_to_uint:     ; Builtin function: int_to_uint(i: int) -> uint
+    ret          ; value already at [bp+8], no conversion needed
+
+uint_to_int:     ; Builtin function: uint_to_int(u: uint) -> int
+    ret          ; value already at [bp+8], no conversion needed
+
+int_to_long:     ; Builtin function: int_to_long(i: int) -> long
+    ldbp 8       ; load int value from [bp+8]
+    push 0xFFFF  ; mask to get only lower 16 bits
+    band         ; keep only lower 16 bits (clears upper 16 bits)
+    push 0x8000  ; sign bit mask
+    bxor         ; flip sign bit: (x ^ 0x8000)
+    push 0x8000  ; prepare for subtraction
+    sub          ; (x ^ 0x8000) - 0x8000 (sign extend 16->32)
+    stbp 8       ; store result at [bp+8]
+    ret
+
+long_to_int:     ; Builtin function: long_to_int(l: long) -> int
+    ldbp 8       ; load long value from [bp+8]
+    push 0xFFFF  ; mask for int (16 bits)
+    band         ; apply mask to get lower 16 bits
+    stbp 8       ; store result at [bp+8]
+    ret
+
+long_to_ulong:   ; Builtin function: long_to_ulong(l: long) -> ulong
+    ret          ; value already at [bp+8], no conversion needed
+
+ulong_to_long:   ; Builtin function: ulong_to_long(u: ulong) -> long
+    ret          ; value already at [bp+8], no conversion needed
+
 test_unary:
     push 0    ; a
     push 0    ; b
@@ -84,6 +130,8 @@ test_unary_1:
 test_unary_2:
     ldbp -8
     bnot_u
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_unary_1
 test_unary_out:
@@ -101,30 +149,40 @@ test_int_arithmetic_2:
     ldbp -8
     ldbp -12
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_arithmetic_3
 test_int_arithmetic_3:
     ldbp -8
     ldbp -12
     sub
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_arithmetic_4
 test_int_arithmetic_4:
     ldbp -8
     ldbp -12
     mul
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_arithmetic_5
 test_int_arithmetic_5:
     ldbp -8
     push 2 ; dec = 2
     div
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_arithmetic_6
 test_int_arithmetic_6:
     ldbp -8
     push 2 ; dec = 2
     mod
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_arithmetic_1
 test_int_arithmetic_out:
@@ -142,30 +200,40 @@ test_uint_arithmetic_2:
     ldbp -8
     ldbp -12
     add
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_arithmetic_3
 test_uint_arithmetic_3:
     ldbp -8
     ldbp -12
     sub
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_arithmetic_4
 test_uint_arithmetic_4:
     ldbp -8
     ldbp -12
     mul
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_arithmetic_5
 test_uint_arithmetic_5:
     ldbp -8
     push 2 ; dec = 2
     div
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_arithmetic_6
 test_uint_arithmetic_6:
     ldbp -8
     push 2 ; dec = 2
     mod
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_arithmetic_1
 test_uint_arithmetic_out:
@@ -241,18 +309,24 @@ test_byte_arithmetic_2:
     ldbp -8
     ldbp -12
     add
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -4
     jmp test_byte_arithmetic_3
 test_byte_arithmetic_3:
     ldbp -8
     ldbp -12
     sub
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -4
     jmp test_byte_arithmetic_4
 test_byte_arithmetic_4:
     ldbp -8
     ldbp -12
     mul
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -4
     jmp test_byte_arithmetic_1
 test_byte_arithmetic_out:
@@ -270,35 +344,47 @@ test_int_bitwise_2:
     ldbp -8
     ldbp -12
     bor
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_bitwise_3
 test_int_bitwise_3:
     ldbp -8
     ldbp -12
     band
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_bitwise_4
 test_int_bitwise_4:
     ldbp -8
     ldbp -12
     bxor
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_bitwise_5
 test_int_bitwise_5:
     ldbp -8
     ldbp -12
     shl
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_bitwise_6
 test_int_bitwise_6:
     ldbp -8
     ldbp -12
     shr
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_bitwise_7
 test_int_bitwise_7:
     ldbp -8
     bnot_u
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_int_bitwise_1
 test_int_bitwise_out:
@@ -316,23 +402,31 @@ test_uint_bitwise_2:
     ldbp -8
     ldbp -12
     bor
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_bitwise_3
 test_uint_bitwise_3:
     ldbp -8
     ldbp -12
     band
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_bitwise_4
 test_uint_bitwise_4:
     ldbp -8
     ldbp -12
     bxor
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_bitwise_5
 test_uint_bitwise_5:
     ldbp -8
     bnot_u
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp test_uint_bitwise_1
 test_uint_bitwise_out:
@@ -350,17 +444,23 @@ test_byte_bitwise_2:
     ldbp -8
     ldbp -12
     bor
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -4
     jmp test_byte_bitwise_3
 test_byte_bitwise_3:
     ldbp -8
     ldbp -12
     band
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -4
     jmp test_byte_bitwise_4
 test_byte_bitwise_4:
     ldbp -8
     bnot_u
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -4
     jmp test_byte_bitwise_1
 test_byte_bitwise_out:
@@ -530,6 +630,8 @@ test_int_array_4:
     ldbp -12
     push 1 ; dec = 1
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     store2
     jmp test_int_array_1
 test_int_array_out:
@@ -566,6 +668,8 @@ test_uint_array_4:
     ldbp -12
     push 1 ; dec = 1
     add
+    push 65535  ; mask for uint
+    band        ; apply type mask
     store2
     jmp test_uint_array_1
 test_uint_array_out:
@@ -598,6 +702,8 @@ test_byte_array_4:
     ldbp -12
     push 1 ; dec = 1
     add
+    push 255  ; mask for byte
+    band        ; apply type mask
     store1
     jmp test_byte_array_1
 test_byte_array_out:
@@ -643,6 +749,8 @@ add_ints_2:
     ldbp 12
     ldbp 8
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp add_ints_1
 add_ints_out:
@@ -658,6 +766,8 @@ add_uints_2:
     ldbp 12
     ldbp 8
     add
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -4
     jmp add_uints_1
 add_uints_out:
@@ -808,10 +918,16 @@ test_nested_expr_2:
     ldbp -4
     ldbp -8
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     ldbp -12
     ldbp -4
     sub
+    push 65535  ; mask for int
+    band        ; apply type mask
     mul
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -16
     jmp test_nested_expr_3
 test_nested_expr_3:
@@ -819,7 +935,11 @@ test_nested_expr_3:
     ldbp -8
     ldbp -12
     mul
+    push 65535  ; mask for int
+    band        ; apply type mask
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -16
     jmp test_nested_expr_1
 test_nested_expr_out:
@@ -843,12 +963,16 @@ test_literals_auto_type_3:
     ldbp -4
     push 1 ; dec = 1
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_literals_auto_type_4
 test_literals_auto_type_4:
     push 1 ; dec = 1
     ldbp -4
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_literals_auto_type_5
 test_literals_auto_type_5:
@@ -859,12 +983,16 @@ test_literals_auto_type_6:
     ldbp -8
     push 1 ; dec = 1
     add
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -8
     jmp test_literals_auto_type_7
 test_literals_auto_type_7:
     push 1 ; dec = 1
     ldbp -8
     add
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -8
     jmp test_literals_auto_type_8
 test_literals_auto_type_8:
@@ -907,12 +1035,16 @@ test_literals_auto_type_15:
     ldbp -20
     push 1 ; dec = 1
     add
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -20
     jmp test_literals_auto_type_16
 test_literals_auto_type_16:
     push 1 ; dec = 1
     ldbp -20
     add
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -20
     jmp test_literals_auto_type_1
 test_literals_auto_type_out:
@@ -1055,12 +1187,16 @@ test_while_do_6:
     ldbp -8
     ldbp -4
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -8
     jmp test_while_do_7
 test_while_do_7:
     ldbp -4
     push 1 ; dec = 1
     sub
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_while_do_5
 test_while_do_out:
@@ -1080,6 +1216,8 @@ test_repeat_while_4:
     ldbp -4
     push 1 ; dec = 1
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_repeat_while_5
 test_repeat_while_5:
@@ -1105,6 +1243,8 @@ test_repeat_until_4:
     ldbp -4
     push 1 ; dec = 1
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_repeat_until_5
 test_repeat_until_5:
@@ -1200,12 +1340,16 @@ test_if_with_while_9:
     ldbp -12
     push 1 ; dec = 1
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -12
     jmp test_if_with_while_10
 test_if_with_while_10:
     ldbp -4
     push 1 ; dec = 1
     sub
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_if_with_while_8
 test_if_with_while_11:
@@ -1245,6 +1389,8 @@ test_while_with_break_9:
     ldbp -4
     push 1 ; dec = 1
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_while_with_break_5
 test_while_with_break_out:
@@ -1315,6 +1461,8 @@ test_complex_branching_16:
     ldbp -16
     push 2 ; dec = 2
     mod
+    push 65535  ; mask for int
+    band        ; apply type mask
     push 0 ; dec = 0
     eq
     jnz test_complex_branching_17
@@ -1323,6 +1471,8 @@ test_complex_branching_17:
     ldbp -16
     push 2 ; dec = 2
     div
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -16
     jmp test_complex_branching_18
 test_complex_branching_18:
@@ -1331,6 +1481,8 @@ test_complex_branching_19:
     ldbp -16
     push 1 ; dec = 1
     sub
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -16
     jmp test_complex_branching_18
 test_complex_branching_out:
@@ -1359,126 +1511,168 @@ test_all_operations_2:
     ldbp -8
     ldbp -12
     add
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_3
 test_all_operations_3:
     ldbp -8
     ldbp -12
     sub
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_4
 test_all_operations_4:
     ldbp -8
     ldbp -12
     mul
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_5
 test_all_operations_5:
     ldbp -8
     push 2 ; dec = 2
     div
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_6
 test_all_operations_6:
     ldbp -8
     push 2 ; dec = 2
     mod
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_7
 test_all_operations_7:
     ldbp -20
     ldbp -24
     add
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_8
 test_all_operations_8:
     ldbp -20
     ldbp -24
     sub
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_9
 test_all_operations_9:
     ldbp -20
     ldbp -24
     mul
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_10
 test_all_operations_10:
     ldbp -20
     push 2 ; dec = 2
     div
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_11
 test_all_operations_11:
     ldbp -20
     push 2 ; dec = 2
     mod
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_12
 test_all_operations_12:
     ldbp -8
     ldbp -12
     shl
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_13
 test_all_operations_13:
     ldbp -8
     ldbp -12
     shr
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_14
 test_all_operations_14:
     ldbp -8
     ldbp -12
     bor
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_15
 test_all_operations_15:
     ldbp -8
     ldbp -12
     band
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_16
 test_all_operations_16:
     ldbp -8
     ldbp -12
     bxor
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_17
 test_all_operations_17:
     ldbp -20
     ldbp -24
     bor
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_18
 test_all_operations_18:
     ldbp -20
     ldbp -24
     band
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_19
 test_all_operations_19:
     ldbp -20
     ldbp -24
     bxor
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_20
 test_all_operations_20:
     ldbp -32
     ldbp -36
     bor
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -28
     jmp test_all_operations_21
 test_all_operations_21:
     ldbp -32
     ldbp -36
     band
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -28
     jmp test_all_operations_22
 test_all_operations_22:
     ldbp -32
     ldbp -36
     bxor
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -28
     jmp test_all_operations_23
 test_all_operations_23:
@@ -1585,16 +1779,22 @@ test_all_operations_39:
 test_all_operations_40:
     ldbp -8
     bnot_u
+    push 65535  ; mask for int
+    band        ; apply type mask
     stbp -4
     jmp test_all_operations_41
 test_all_operations_41:
     ldbp -20
     bnot_u
+    push 65535  ; mask for uint
+    band        ; apply type mask
     stbp -16
     jmp test_all_operations_42
 test_all_operations_42:
     ldbp -32
     bnot_u
+    push 255  ; mask for byte
+    band        ; apply type mask
     stbp -28
     jmp test_all_operations_1
 test_all_operations_out:

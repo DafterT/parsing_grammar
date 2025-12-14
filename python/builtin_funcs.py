@@ -105,3 +105,109 @@ def generate_ulong_constructor(out_file):
 def generate_char_constructor(out_file):
     """Генерирует код для конструктора типа char (1 байт, size_shift=0)."""
     _generate_type_constructor(out_file, 'char', 0)
+
+
+def generate_bool_to_byte(out_file):
+    """Генерирует код для встроенной функции bool_to_byte."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+bool_to_byte:    ; Builtin function: bool_to_byte(b: bool) -> byte
+    ret          ; value already at [bp+8], no conversion needed
+""")
+
+
+def generate_byte_to_bool(out_file):
+    """Генерирует код для встроенной функции byte_to_bool."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+byte_to_bool:    ; Builtin function: byte_to_bool(b: byte) -> bool
+    ret          ; value already at [bp+8], no conversion needed
+""")
+
+
+def generate_byte_to_int(out_file):
+    """Генерирует код для встроенной функции byte_to_int."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+byte_to_int:     ; Builtin function: byte_to_int(b: byte) -> int
+    ret          ; value already at [bp+8], already zero-extended to 32 bits
+""")
+
+
+def generate_int_to_byte(out_file):
+    """Генерирует код для встроенной функции int_to_byte."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+int_to_byte:     ; Builtin function: int_to_byte(i: int) -> byte
+    ldbp 8       ; load int value from [bp+8]
+    push 0xFF    ; mask for byte (8 bits)
+    band         ; apply mask
+    stbp 8       ; store result at [bp+8]
+    ret
+""")
+
+
+def generate_int_to_uint(out_file):
+    """Генерирует код для встроенной функции int_to_uint."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+int_to_uint:     ; Builtin function: int_to_uint(i: int) -> uint
+    ret          ; value already at [bp+8], no conversion needed
+""")
+
+
+def generate_uint_to_int(out_file):
+    """Генерирует код для встроенной функции uint_to_int."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+uint_to_int:     ; Builtin function: uint_to_int(u: uint) -> int
+    ret          ; value already at [bp+8], no conversion needed
+""")
+
+
+def generate_int_to_long(out_file):
+    """Генерирует код для встроенной функции int_to_long."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+int_to_long:     ; Builtin function: int_to_long(i: int) -> long
+    ldbp 8       ; load int value from [bp+8]
+    push 0xFFFF  ; mask to get only lower 16 bits
+    band         ; keep only lower 16 bits (clears upper 16 bits)
+    push 0x8000  ; sign bit mask
+    bxor         ; flip sign bit: (x ^ 0x8000)
+    push 0x8000  ; prepare for subtraction
+    sub          ; (x ^ 0x8000) - 0x8000 (sign extend 16->32)
+    stbp 8       ; store result at [bp+8]
+    ret
+""")
+
+
+def generate_long_to_int(out_file):
+    """Генерирует код для встроенной функции long_to_int."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+long_to_int:     ; Builtin function: long_to_int(l: long) -> int
+    ldbp 8       ; load long value from [bp+8]
+    push 0xFFFF  ; mask for int (16 bits)
+    band         ; apply mask to get lower 16 bits
+    stbp 8       ; store result at [bp+8]
+    ret
+""")
+
+
+def generate_long_to_ulong(out_file):
+    """Генерирует код для встроенной функции long_to_ulong."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+long_to_ulong:   ; Builtin function: long_to_ulong(l: long) -> ulong
+    ret          ; value already at [bp+8], no conversion needed
+""")
+
+
+def generate_ulong_to_long(out_file):
+    """Генерирует код для встроенной функции ulong_to_long."""
+    with open(out_file, 'a', encoding='utf-8') as f:
+        f.write("""
+ulong_to_long:   ; Builtin function: ulong_to_long(u: ulong) -> long
+    ret          ; value already at [bp+8], no conversion needed
+""")

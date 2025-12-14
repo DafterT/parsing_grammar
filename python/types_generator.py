@@ -334,7 +334,38 @@ def process_type(not_typed_data: dict):
     funcs_returns['send_byte'] = (None, None)
     funcs_calls['send_byte'] = {'b': ('byte', None)}
 
-    # 3. Конструкторы массивов: int(size) -> array[] of int, и т.д.
+    # 3. Type conversion functions
+    funcs_returns['bool_to_byte'] = ('byte', None)
+    funcs_calls['bool_to_byte'] = {'b': ('bool', None)}
+    
+    funcs_returns['byte_to_bool'] = ('bool', None)
+    funcs_calls['byte_to_bool'] = {'b': ('byte', None)}
+    
+    funcs_returns['byte_to_int'] = ('int', None)
+    funcs_calls['byte_to_int'] = {'b': ('byte', None)}
+    
+    funcs_returns['int_to_byte'] = ('byte', None)
+    funcs_calls['int_to_byte'] = {'i': ('int', None)}
+    
+    funcs_returns['int_to_uint'] = ('uint', None)
+    funcs_calls['int_to_uint'] = {'i': ('int', None)}
+    
+    funcs_returns['uint_to_int'] = ('int', None)
+    funcs_calls['uint_to_int'] = {'u': ('uint', None)}
+    
+    funcs_returns['int_to_long'] = ('long', None)
+    funcs_calls['int_to_long'] = {'i': ('int', None)}
+    
+    funcs_returns['long_to_int'] = ('int', None)
+    funcs_calls['long_to_int'] = {'l': ('long', None)}
+    
+    funcs_returns['long_to_ulong'] = ('ulong', None)
+    funcs_calls['long_to_ulong'] = {'l': ('long', None)}
+    
+    funcs_returns['ulong_to_long'] = ('long', None)
+    funcs_calls['ulong_to_long'] = {'u': ('ulong', None)}
+
+    # 4. Конструкторы массивов: int(size) -> array[] of int, и т.д.
     for t_name in BUILTIN_TYPES:
         # returns: array[] of <t_name> (char -> byte, string -> array of byte)
         normalized_name = normalize_type(t_name)
