@@ -342,6 +342,60 @@ test_if_8:
 test_if_out:
     ret
 
+test_req:
+test_req_0:
+    jmp test_req_2
+test_req_1:
+    jmp test_req_out
+test_req_2:
+    ldbp 8
+    push 0 ; dec = 0
+    eq
+    jnz test_req_3
+    jmp test_req_5
+test_req_3:
+    push 48 ; dec = 48
+    call send_byte
+    drop
+    jmp test_req_4
+test_req_4:
+    jmp test_req_1
+test_req_5:
+    jmp test_req_7
+test_req_6:
+    jmp test_req_4
+test_req_7:
+    push 48 ; dec = 48
+    ldbp 8
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_req_8
+test_req_8:
+    ldbp 8
+    push 1 ; dec = 1
+    sub
+    push 65535  ; mask for int
+    band        ; apply type mask
+    call test_req
+    drop
+    jmp test_req_9
+test_req_9:
+    push 48 ; dec = 48
+    ldbp 8
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_req_6
+test_req_out:
+    ret
+
 main:
 main_0:
     jmp main_2
@@ -351,24 +405,74 @@ main_2:
     call test_send_one_byte
     jmp main_3
 main_3:
-    call test_builtin_func
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
     jmp main_4
 main_4:
-    call test_math
+    call test_builtin_func
     jmp main_5
 main_5:
-    push 5 ; dec = 5
-    call test_if
+    push 10 ; hex = 0x0A
+    call send_byte
     drop
     jmp main_6
 main_6:
+    call test_math
+    jmp main_7
+main_7:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp main_8
+main_8:
+    push 5 ; dec = 5
+    call test_if
+    drop
+    jmp main_9
+main_9:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp main_10
+main_10:
     push 3 ; dec = 3
     call test_if
     drop
-    jmp main_7
-main_7:
+    jmp main_11
+main_11:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp main_12
+main_12:
     push 4 ; dec = 4
     call test_if
+    drop
+    jmp main_13
+main_13:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp main_14
+main_14:
+    push 0 ; dec = 0
+    call test_req
+    drop
+    jmp main_15
+main_15:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp main_16
+main_16:
+    push 5 ; dec = 5
+    call test_req
+    drop
+    jmp main_17
+main_17:
+    push 10 ; hex = 0x0A
+    call send_byte
     drop
     jmp main_1
 main_out:

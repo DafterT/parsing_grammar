@@ -45,12 +45,32 @@ method test_if(a: int) begin
             send_byte(49);
 end;
 
+method test_req(a: int) begin
+    if a = 0 then
+        send_byte(48);
+    else begin
+        send_byte(int_to_byte(48+a));
+        test_req(a-1);
+        send_byte(int_to_byte(48+a));
+    end;
+end;
+
 method main()
 begin
     test_send_one_byte();
+    send_byte(0x0A);
     test_builtin_func();
+    send_byte(0x0A);
     test_math();
+    send_byte(0x0A);
     test_if(5);
+    send_byte(0x0A);
     test_if(3);
+    send_byte(0x0A);
     test_if(4);
+    send_byte(0x0A);
+    test_req(0);
+    send_byte(0x0A);
+    test_req(5);
+    send_byte(0x0A);
 end;
