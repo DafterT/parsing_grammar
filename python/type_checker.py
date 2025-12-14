@@ -379,6 +379,11 @@ class TypeChecker:
         errors: List[TypeCheckError] = []
         label = node.label
         
+        # Проверяем, есть ли уже разрешённый тип в кэше
+        resolved = self.get_resolved_type(node)
+        if resolved is not None:
+            return resolved, errors
+        
         # 1. Константа: const(type(value))
         if label.startswith('const('):
             lit_type, value = parse_const_literal(label)
@@ -438,16 +443,30 @@ class TypeChecker:
                     ))
                     return None, errors
 
-                # Проверяем тип правой части
+                # Сначала пропагируем тип переменной к правой части
+                # Это позволяет правильно вывести типы для выражений с UNTYPED_INT
+                if var_type in NUMERIC_TYPES:
+                    self._resolve_subtree(node.children[0], var_type)
+
+                # Проверяем тип правой части (теперь с учётом пропагированного типа)
                 rhs_type, rhs_errors = self.infer_type(node.children[0])
                 errors.extend(rhs_errors)
                 rhs_type = normalize_type(rhs_type)
 
-                # UNTYPED_INT автоматически приводится к числовому типу переменной
+                # Проверяем совместимость типов
                 if rhs_type is not None:
-                    if is_untyped_int(rhs_type) and var_type in NUMERIC_TYPES:
-                        # Литерал приводится к типу переменной - сохраняем разрешённый тип
-                        self.set_resolved_type(node.children[0], var_type)
+                    # Получаем разрешённый тип (если был пропагирован)
+                    resolved_rhs_type = self.get_resolved_type(node.children[0])
+                    if resolved_rhs_type is not None:
+                        resolved_rhs_type = normalize_type(resolved_rhs_type)
+                        if resolved_rhs_type != var_type:
+                            errors.append(TypeCheckError(
+                                message=f"Несоответствие типов при присваивании: "
+                                        f"переменная '{var_name}' имеет тип '{var_type}', "
+                                        f"а выражение имеет тип '{resolved_rhs_type}'",
+                                tree=node,
+                                tree_str=tree_view_to_str(node)
+                            ))
                     elif var_type != rhs_type:
                         errors.append(TypeCheckError(
                             message=f"Несоответствие типов при присваивании: "
@@ -782,6 +801,20 @@ class TypeChecker:
         Рекурсивно разрешает типы в поддереве с учётом подсказки.
         """
         type_hint = normalize_type(type_hint)
+        label = node.label
+        
+        # Для бинарных операций сначала пропагируем тип к операндам
+        # Это важно, чтобы UNTYPED_INT литералы получили правильный тип
+        if type_hint is not None and type_hint in NUMERIC_TYPES:
+            if label in ARITHMETIC_OPS | BITWISE_OPS:
+                if len(node.children) == 2:
+                    # Пропагируем тип к обоим операндам
+                    self._resolve_subtree(node.children[0], type_hint)
+                    self._resolve_subtree(node.children[1], type_hint)
+                    # Не сохраняем тип для узла операции здесь - 
+                    # infer_type выведет его на основе типов операндов
+                    # Но если базовый тип будет UNTYPED_INT, он будет заменён на type_hint ниже
+        
         base_type, _ = self.infer_type(node)
         base_type = normalize_type(base_type)
         

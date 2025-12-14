@@ -1,0 +1,56 @@
+method test_send_one_byte()
+begin
+    send_byte(read_byte());
+end;
+
+method test_builtin_func()
+var a: uint;
+    b: int;
+begin
+    a := 49;
+    b := 0-1;
+    4;
+    send_byte(int_to_byte(uint_to_int(a) + b));
+    1;
+    send_byte(49);
+end;
+
+method test_math()
+var a: uint;
+    b: uint;
+begin
+    b := 200;    
+    a := (
+        (
+            ((((5000 + 3000) * 4 - b * 10) / 10) % 97) 
+            - (b * 5 / 25)                             
+        )
+        +
+        (
+            (((b * 6 / 3) - b * 2) * (7 - 7))             
+            + ((99 % 9) * (123 + 1))                  
+            + (((500 / 10) - 50) * b)                
+        ) / 1                                         
+    );
+    send_byte(int_to_byte(uint_to_int(a)));
+end;
+
+method test_if(a: int) begin
+    if a = 3 then
+        send_byte(50);
+    else 
+        if a = 4 then
+            send_byte(48);
+        else
+            send_byte(49);
+end;
+
+method main()
+begin
+    test_send_one_byte();
+    test_builtin_func();
+    test_math();
+    test_if(5);
+    test_if(3);
+    test_if(4);
+end;
