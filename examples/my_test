@@ -55,6 +55,22 @@ method test_req(a: int) begin
     end;
 end;
 
+method test_while(a: int) begin
+    while a != 0 do begin
+        send_byte(int_to_byte(a + 48));
+        a := a - 1;
+    end;
+end;
+
+method test_break(a: int) begin
+    while a != 0 do begin
+        send_byte(int_to_byte(a + 48));
+        a := a - 1;
+        if a = 3 then
+            break;
+    end;
+end;
+
 method main()
 begin
     test_send_one_byte();
@@ -73,4 +89,7 @@ begin
     send_byte(0x0A);
     test_req(5);
     send_byte(0x0A);
+    test_while(9);
+    send_byte(0x0A);
+    test_break(9);
 end;

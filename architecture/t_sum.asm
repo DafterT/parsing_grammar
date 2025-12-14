@@ -396,6 +396,92 @@ test_req_9:
 test_req_out:
     ret
 
+test_while:
+test_while_0:
+    jmp test_while_2
+test_while_1:
+    jmp test_while_out
+test_while_2:
+    ldbp 8
+    push 0 ; dec = 0
+    ne
+    jnz test_while_4
+    jmp test_while_3
+test_while_3:
+    jmp test_while_1
+test_while_4:
+    jmp test_while_6
+test_while_5:
+    jmp test_while_2
+test_while_6:
+    ldbp 8
+    push 48 ; dec = 48
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_while_7
+test_while_7:
+    ldbp 8
+    push 1 ; dec = 1
+    sub
+    push 65535  ; mask for int
+    band        ; apply type mask
+    stbp 8
+    jmp test_while_5
+test_while_out:
+    ret
+
+test_break:
+test_break_0:
+    jmp test_break_2
+test_break_1:
+    jmp test_break_out
+test_break_2:
+    ldbp 8
+    push 0 ; dec = 0
+    ne
+    jnz test_break_4
+    jmp test_break_3
+test_break_3:
+    jmp test_break_1
+test_break_4:
+    jmp test_break_6
+test_break_5:
+    jmp test_break_2
+test_break_6:
+    ldbp 8
+    push 48 ; dec = 48
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_break_7
+test_break_7:
+    ldbp 8
+    push 1 ; dec = 1
+    sub
+    push 65535  ; mask for int
+    band        ; apply type mask
+    stbp 8
+    jmp test_break_8
+test_break_8:
+    ldbp 8
+    push 3 ; dec = 3
+    eq
+    jnz test_break_9
+    jmp test_break_10
+test_break_9:
+    jmp test_break_3
+test_break_10:
+    jmp test_break_5
+test_break_out:
+    ret
+
 main:
 main_0:
     jmp main_2
@@ -473,6 +559,21 @@ main_16:
 main_17:
     push 10 ; hex = 0x0A
     call send_byte
+    drop
+    jmp main_18
+main_18:
+    push 9 ; dec = 9
+    call test_while
+    drop
+    jmp main_19
+main_19:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp main_20
+main_20:
+    push 9 ; dec = 9
+    call test_break
     drop
     jmp main_1
 main_out:
