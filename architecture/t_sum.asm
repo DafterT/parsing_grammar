@@ -482,6 +482,134 @@ test_break_10:
 test_break_out:
     ret
 
+test_many_operands:
+test_many_operands_0:
+    jmp test_many_operands_2
+test_many_operands_1:
+    jmp test_many_operands_out
+test_many_operands_2:
+    ldbp 16
+    call send_byte
+    drop
+    jmp test_many_operands_3
+test_many_operands_3:
+    ldbp 12
+    call send_byte
+    drop
+    jmp test_many_operands_4
+test_many_operands_4:
+    push 48 ; dec = 48
+    ldbp 8
+    call bool_to_byte
+    add
+    push 255  ; mask for byte
+    band        ; apply type mask
+    call send_byte
+    drop
+    jmp test_many_operands_1
+test_many_operands_out:
+    ret
+
+test_mas:
+    push 0    ; b
+    push 0    ; c
+test_mas_0:
+    jmp test_mas_2
+test_mas_1:
+    jmp test_mas_out
+test_mas_2:
+    ldbp 8
+    call int
+    stbp -4
+    jmp test_mas_3
+test_mas_3:
+    ldbp -4
+    push 0 ; dec = 0
+    push 1
+    shl
+    add
+    push 50 ; dec = 50
+    store2
+    jmp test_mas_4
+test_mas_4:
+    ldbp -4
+    push 2 ; dec = 2
+    push 1
+    shl
+    add
+    push 51 ; dec = 51
+    store2
+    jmp test_mas_5
+test_mas_5:
+    ldbp -4
+    push 0 ; dec = 0
+    push 1
+    shl
+    add
+    load2
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_mas_6
+test_mas_6:
+    ldbp -4
+    push 2 ; dec = 2
+    push 1
+    shl
+    add
+    load2
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_mas_7
+test_mas_7:
+    ldbp 8
+    call int
+    stbp -8
+    jmp test_mas_8
+test_mas_8:
+    ldbp -8
+    push 0 ; dec = 0
+    push 1
+    shl
+    add
+    push 52 ; dec = 52
+    store2
+    jmp test_mas_9
+test_mas_9:
+    ldbp -8
+    push 9 ; dec = 9
+    push 1
+    shl
+    add
+    push 53 ; dec = 53
+    store2
+    jmp test_mas_10
+test_mas_10:
+    ldbp -8
+    push 0 ; dec = 0
+    push 1
+    shl
+    add
+    load2
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_mas_11
+test_mas_11:
+    ldbp -8
+    push 9 ; dec = 9
+    push 1
+    shl
+    add
+    load2
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_mas_1
+test_mas_out:
+    ret
+
 main:
 main_0:
     jmp main_2
@@ -574,6 +702,30 @@ main_19:
 main_20:
     push 9 ; dec = 9
     call test_break
+    drop
+    jmp main_21
+main_21:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp main_22
+main_22:
+    push 50 ; dec = 50
+    push 49 ; dec = 49
+    push 1 ; bool = true
+    call test_many_operands
+    drop
+    drop
+    drop
+    jmp main_23
+main_23:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp main_24
+main_24:
+    push 10 ; dec = 10
+    call test_mas
     drop
     jmp main_1
 main_out:

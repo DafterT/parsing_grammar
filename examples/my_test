@@ -71,6 +71,27 @@ method test_break(a: int) begin
     end;
 end;
 
+method test_many_operands(a: byte, b: byte, c: bool) begin
+    send_byte(a);
+    send_byte(b);
+    send_byte(48 + bool_to_byte(c));
+end;
+
+method test_mas(a: int)
+var b, c: array[] of int;
+begin
+    b := int(a);
+    b[0] := 50;
+    b[2] := 51;
+    send_byte(int_to_byte(b[0]));
+    send_byte(int_to_byte(b[2]));
+    c := int(a);
+    c[0] := 52;
+    c[9] := 53;
+    send_byte(int_to_byte(c[0]));
+    send_byte(int_to_byte(c[9]));
+end;
+
 method main()
 begin
     test_send_one_byte();
@@ -92,4 +113,8 @@ begin
     test_while(9);
     send_byte(0x0A);
     test_break(9);
+    send_byte(0x0A);
+    test_many_operands(50, 49, true);
+    send_byte(0x0A);
+    test_mas(10);
 end;
