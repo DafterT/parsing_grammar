@@ -6,9 +6,10 @@ from file_parser_to_graph import (
 )
 from pathlib import Path
 
+
 def main():
-    grammar_dir, lang_name, file_paths, out_dir, lib_path = parse_cli()
-    result = analyze_files(file_paths, lib_path, lang_name, grammar_dir, out_dir=out_dir)
+    lang_name, file_paths, out_dir, lib_path = parse_cli()
+    result = analyze_files(file_paths, lib_path, lang_name, out_dir=out_dir)
     
     out_dir_path = Path(out_dir)
     out_dir_path.mkdir(parents=True, exist_ok=True)
