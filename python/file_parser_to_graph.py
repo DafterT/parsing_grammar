@@ -12,13 +12,12 @@ import argparse
 def parse_cli():
     """
     Запуск с уже собранной библиотекой:
-    python main.py path/to/parser.dll input1.txt [input2.txt ...] output_dir
+    python main.py path/to/parser.dll input1.txt [input2.txt ...] output_dir [--lib lang_name]
 
     - Первый аргумент: путь к .dll/.so/.dylib
     - Далее: один или несколько входных файлов
     - Последний аргумент: выходная директория
-    
-    Имя языка автоматически извлекается из имени файла библиотеки.
+    - --lib: название парсера (опционально). Если не указано, берется из имени файла библиотеки.
     """
     p = argparse.ArgumentParser(description="Запуск tree-sitter парсера")
 
@@ -31,6 +30,12 @@ def parse_cli():
         "rest",
         nargs="+",
         help="Входные файлы и выходная директория: file1 [file2 ...] out_dir"
+    )
+    
+    p.add_argument(
+        "--lib",
+        dest="lang_name_override",
+        help="Название парсера (например, 'foo' для tree_sitter_foo). Если не указано, берется из имени файла библиотеки."
     )
 
     a = p.parse_args()
@@ -46,9 +51,12 @@ def parse_cli():
     file_paths = a.rest[:-1]
     out_dir = a.rest[-1]
 
-    # Извлекаем имя языка из имени файла библиотеки
-    stem = Path(lib_path).stem  # e.g. libfoo -> libfoo, foo -> foo
-    lang_name = stem[3:] if stem.startswith("lib") else stem
+    # Извлекаем имя языка: либо из флага --lib, либо из имени файла библиотеки
+    if a.lang_name_override:
+        lang_name = a.lang_name_override
+    else:
+        stem = Path(lib_path).stem  # e.g. libfoo -> libfoo, foo -> foo
+        lang_name = stem[3:] if stem.startswith("lib") else stem
 
     # Для совместимости с остальным кодом
     grammar_dir = None
