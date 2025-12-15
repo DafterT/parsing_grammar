@@ -78,7 +78,7 @@ method test_many_operands(a: byte, b: byte, c: bool) begin
 end;
 
 method test_mas(a: int)
-var b, c: array[] of int;
+var b, c, d: array[] of int;
 begin
     b := int(a);
     b[0] := 50;
@@ -90,6 +90,13 @@ begin
     c[9] := 53;
     send_byte(int_to_byte(c[0]));
     send_byte(int_to_byte(c[9]));
+    d := int(a);
+    d[0] := 0x3031;
+    d[1] := 0x3332;
+    send_byte(int_to_byte(d[0]));
+    send_byte(int_to_byte(d[0] >> 8));
+    send_byte(int_to_byte(d[1]));
+    send_byte(int_to_byte(d[1] >> 8));
 end;
 
 method main()

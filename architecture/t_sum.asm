@@ -513,6 +513,7 @@ test_many_operands_out:
 test_mas:
     push 0    ; b
     push 0    ; c
+    push 0    ; d
 test_mas_0:
     jmp test_mas_2
 test_mas_1:
@@ -603,6 +604,81 @@ test_mas_11:
     shl
     add
     load2
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_mas_12
+test_mas_12:
+    ldbp 8
+    call int
+    stbp -12
+    jmp test_mas_13
+test_mas_13:
+    ldbp -12
+    push 0 ; dec = 0
+    push 1
+    shl
+    add
+    push 12337 ; hex = 0x3031
+    store2
+    jmp test_mas_14
+test_mas_14:
+    ldbp -12
+    push 1 ; dec = 1
+    push 1
+    shl
+    add
+    push 13106 ; hex = 0x3332
+    store2
+    jmp test_mas_15
+test_mas_15:
+    ldbp -12
+    push 0 ; dec = 0
+    push 1
+    shl
+    add
+    load2
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_mas_16
+test_mas_16:
+    ldbp -12
+    push 0 ; dec = 0
+    push 1
+    shl
+    add
+    load2
+    push 8 ; dec = 8
+    shr
+    push 65535  ; mask for int
+    band        ; apply type mask
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_mas_17
+test_mas_17:
+    ldbp -12
+    push 1 ; dec = 1
+    push 1
+    shl
+    add
+    load2
+    call int_to_byte
+    call send_byte
+    drop
+    jmp test_mas_18
+test_mas_18:
+    ldbp -12
+    push 1 ; dec = 1
+    push 1
+    shl
+    add
+    load2
+    push 8 ; dec = 8
+    shr
+    push 65535  ; mask for int
+    band        ; apply type mask
     call int_to_byte
     call send_byte
     drop
