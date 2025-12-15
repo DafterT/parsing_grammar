@@ -148,7 +148,19 @@ def get_func_returns_type(tree):
     Возвращает:
       (type_str | None, type_ref_node | None, error_msg | None)
     """
-    type_ref_node = tree.children[0].children[1].children[-1]
+    # Проверяем структуру дерева перед доступом
+    if not tree.children or len(tree.children) < 1:
+        return (None, None), "Неожиданная структура дерева функции: отсутствуют дочерние узлы"
+    
+    func_def_wrapper = tree.children[0]
+    if not func_def_wrapper.children or len(func_def_wrapper.children) < 2:
+        return (None, None), "Неожиданная структура дерева функции: отсутствует funcSignature"
+    
+    func_signature = func_def_wrapper.children[1]
+    if not func_signature.children:
+        return (None, None), "Неожиданная структура дерева функции: funcSignature пуст"
+    
+    type_ref_node = func_signature.children[-1]
 
     # тип не задан (процедура)
     if type_ref_node.label != 'typeRef':
@@ -261,15 +273,19 @@ def process_type(not_typed_data: dict):
         func_type, error = get_func_returns_type(tree)
         if error:
             global_errors[func_name] = [error]
-        # Проверка: функции с возвращаемым значением считаются ошибкой
-        if func_type[0] is not None:
-            error_msg = f"функция '{func_name}' имеет возвращаемое значение, что не допускается"
-            global_errors[func_name] = global_errors.get(func_name, []) + [error_msg]
         funcs_returns[func_name] = func_type
         
         # Типы данных локальных переменных функции
         # tree -> funcDef -> [method, funcSignature, body]
+        if not tree.children or len(tree.children) < 1:
+            global_errors[func_name] = global_errors.get(func_name, []) + ["Неожиданная структура дерева функции"]
+            continue
+        
         func_def = tree.children[0]
+        if not func_def.children or len(func_def.children) < 2:
+            global_errors[func_name] = global_errors.get(func_name, []) + ["Неожиданная структура дерева функции: отсутствует funcSignature"]
+            continue
+        
         body_node = func_def.children[2] if len(func_def.children) > 2 else None
         
         if body_node and body_node.label == 'body':
@@ -282,6 +298,11 @@ def process_type(not_typed_data: dict):
             funcs_vars[func_name] = dict_var
         else:
             funcs_vars[func_name] = {}
+        
+        # Если функция возвращает значение, добавляем переменную с именем функции
+        # в конец локальных переменных для проверки конфликтов
+        if func_type[0] is not None:
+            funcs_vars[func_name][func_name] = (func_type[0], None)
         
         # Типы данных аргументов функции
         func_signature = func_def.children[1]
@@ -316,14 +337,14 @@ def process_type(not_typed_data: dict):
 
     # Если есть ошибки, вернем
     if global_errors:
-        return None, global_errors
+        return None, global_errors, None
     
     # Проверим конфликты
     conflicts = check_var_param_conflicts(funcs_vars, funcs_calls)
     if conflicts:
         for func_name, msgs in conflicts.items():
             global_errors[func_name] = global_errors.get(func_name, []) + msgs
-        return None, global_errors
+        return None, global_errors, None
     
     # Добавляем встроенные функции в funcs_returns и funcs_calls, 
     # 1. read_byte(): byte
@@ -390,13 +411,24 @@ def process_type(not_typed_data: dict):
         global_errors[func_name] = global_errors.get(func_name, []) + errors
     
     if global_errors:
-        return None, global_errors
+        return None, global_errors, None
+    
+    # Обновляем структуру данных: добавляем переменную с именем функции в список vars
+    # для функций с возвращаемым значением
+    typed_data = {}
+    for func_name, (references, errors, cfg, tree, params, vars) in not_typed_data.items():
+        # Если функция возвращает значение, добавляем переменную с именем функции в конец vars
+        func_type = funcs_returns.get(func_name)
+        if func_type and func_type[0] is not None:
+            # Создаем новый список vars с добавленной переменной
+            vars = list(vars)  # Копируем список
+            vars.append((func_name, func_type[0]))  # Добавляем переменную с именем функции
+        typed_data[func_name] = (references, errors, cfg, tree, params, vars)
     
     # Возвращаем typed_data - это та же структура, но с заполненными типами
     # not_typed_data теперь типизирована (node.type заполнены)
-    typed_data = not_typed_data
-    
-    return typed_data, global_errors
+    # Также возвращаем funcs_returns для использования в generate_asm
+    return typed_data, global_errors, funcs_returns
 
 
 def check_main_function(result, errors_report_path) -> bool:

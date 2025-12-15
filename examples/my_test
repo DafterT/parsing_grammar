@@ -99,6 +99,38 @@ begin
     send_byte(int_to_byte(d[1] >> 8));
 end;
 
+method test_return(): int begin
+    test_return := 48;
+end;
+
+method test_return_2(): int begin
+    
+end;
+
+method calculate_complex(x: int, y: int, z: int): int
+var temp1: int;
+    temp2: int;
+    result: int;
+begin
+    temp1 := x + y;
+    temp2 := y + z;
+    result := temp1 + temp2 - y;
+    calculate_complex := result;
+end;
+
+method test_calculate_complex()
+var res1: int;
+    res2: int;
+    final_result: int;
+begin
+    res1 := calculate_complex(5, 10, 15);
+    res2 := calculate_complex(3, 7, 11);
+    final_result := res1 + res2;
+    send_byte(int_to_byte(res1));
+    send_byte(int_to_byte(res2));
+    send_byte(int_to_byte(final_result));
+end;
+
 method main()
 begin
     test_send_one_byte();
@@ -124,4 +156,10 @@ begin
     test_many_operands(50, 49, true);
     send_byte(0x0A);
     test_mas(10);
+    send_byte(0x0A);
+    send_byte(int_to_byte(test_return()));
+    send_byte(0x0A);
+    test_calculate_complex();
+    send_byte(0x0A);
+    send_byte(int_to_byte(test_return_2()) + 48);
 end;

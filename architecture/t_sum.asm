@@ -121,42 +121,42 @@ ulong_to_long:   ; Builtin function: ulong_to_long(u: ulong) -> long
     ret          ; value already at [bp+8], no conversion needed
 
 test_send_one_byte:
-test_send_one_byte_0:
-    jmp test_send_one_byte_2
-test_send_one_byte_1:
-    jmp test_send_one_byte_out
-test_send_one_byte_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     push 0  ; for return value
     call read_byte
     call send_byte
     drop
-    jmp test_send_one_byte_1
-test_send_one_byte_out:
+    jmp .id1
+.out:
     ret
 
 test_builtin_func:
     push 0    ; a
     push 0    ; b
-test_builtin_func_0:
-    jmp test_builtin_func_2
-test_builtin_func_1:
-    jmp test_builtin_func_out
-test_builtin_func_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     push 49 ; dec = 49
     stbp -4
-    jmp test_builtin_func_3
-test_builtin_func_3:
+    jmp .id3
+.id3:
     push 0 ; dec = 0
     push 1 ; dec = 1
     sub
     push 65535  ; mask for int
     band        ; apply type mask
     stbp -8
-    jmp test_builtin_func_4
-test_builtin_func_4:
+    jmp .id4
+.id4:
     push 4 ; dec = 4
-    jmp test_builtin_func_5
-test_builtin_func_5:
+    jmp .id5
+.id5:
     ldbp -4
     call uint_to_int
     ldbp -8
@@ -166,30 +166,30 @@ test_builtin_func_5:
     call int_to_byte
     call send_byte
     drop
-    jmp test_builtin_func_6
-test_builtin_func_6:
+    jmp .id6
+.id6:
     push 1 ; dec = 1
-    jmp test_builtin_func_7
-test_builtin_func_7:
+    jmp .id7
+.id7:
     push 49 ; dec = 49
     call send_byte
     drop
-    jmp test_builtin_func_1
-test_builtin_func_out:
+    jmp .id1
+.out:
     ret
 
 test_math:
     push 0    ; a
     push 0    ; b
-test_math_0:
-    jmp test_math_2
-test_math_1:
-    jmp test_math_out
-test_math_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     push 200 ; dec = 200
     stbp -8
-    jmp test_math_3
-test_math_3:
+    jmp .id3
+.id3:
     push 5000 ; dec = 5000
     push 3000 ; dec = 3000
     add
@@ -292,79 +292,79 @@ test_math_3:
     push 65535  ; mask for uint
     band        ; apply type mask
     stbp -4
-    jmp test_math_4
-test_math_4:
+    jmp .id4
+.id4:
     ldbp -4
     call uint_to_int
     call int_to_byte
     call send_byte
     drop
-    jmp test_math_1
-test_math_out:
+    jmp .id1
+.out:
     ret
 
 test_if:
-test_if_0:
-    jmp test_if_2
-test_if_1:
-    jmp test_if_out
-test_if_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     ldbp 8
     push 3 ; dec = 3
     eq
-    jnz test_if_3
-    jmp test_if_5
-test_if_3:
+    jnz .id3
+    jmp .id5
+.id3:
     push 50 ; dec = 50
     call send_byte
     drop
-    jmp test_if_4
-test_if_4:
-    jmp test_if_1
-test_if_5:
+    jmp .id4
+.id4:
+    jmp .id1
+.id5:
     ldbp 8
     push 4 ; dec = 4
     eq
-    jnz test_if_6
-    jmp test_if_8
-test_if_6:
+    jnz .id6
+    jmp .id8
+.id6:
     push 48 ; dec = 48
     call send_byte
     drop
-    jmp test_if_7
-test_if_7:
-    jmp test_if_4
-test_if_8:
+    jmp .id7
+.id7:
+    jmp .id4
+.id8:
     push 49 ; dec = 49
     call send_byte
     drop
-    jmp test_if_7
-test_if_out:
+    jmp .id7
+.out:
     ret
 
 test_req:
-test_req_0:
-    jmp test_req_2
-test_req_1:
-    jmp test_req_out
-test_req_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     ldbp 8
     push 0 ; dec = 0
     eq
-    jnz test_req_3
-    jmp test_req_5
-test_req_3:
+    jnz .id3
+    jmp .id5
+.id3:
     push 48 ; dec = 48
     call send_byte
     drop
-    jmp test_req_4
-test_req_4:
-    jmp test_req_1
-test_req_5:
-    jmp test_req_7
-test_req_6:
-    jmp test_req_4
-test_req_7:
+    jmp .id4
+.id4:
+    jmp .id1
+.id5:
+    jmp .id7
+.id6:
+    jmp .id4
+.id7:
     push 48 ; dec = 48
     ldbp 8
     add
@@ -373,8 +373,8 @@ test_req_7:
     call int_to_byte
     call send_byte
     drop
-    jmp test_req_8
-test_req_8:
+    jmp .id8
+.id8:
     ldbp 8
     push 1 ; dec = 1
     sub
@@ -382,8 +382,8 @@ test_req_8:
     band        ; apply type mask
     call test_req
     drop
-    jmp test_req_9
-test_req_9:
+    jmp .id9
+.id9:
     push 48 ; dec = 48
     ldbp 8
     add
@@ -392,28 +392,28 @@ test_req_9:
     call int_to_byte
     call send_byte
     drop
-    jmp test_req_6
-test_req_out:
+    jmp .id6
+.out:
     ret
 
 test_while:
-test_while_0:
-    jmp test_while_2
-test_while_1:
-    jmp test_while_out
-test_while_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     ldbp 8
     push 0 ; dec = 0
     ne
-    jnz test_while_4
-    jmp test_while_3
-test_while_3:
-    jmp test_while_1
-test_while_4:
-    jmp test_while_6
-test_while_5:
-    jmp test_while_2
-test_while_6:
+    jnz .id4
+    jmp .id3
+.id3:
+    jmp .id1
+.id4:
+    jmp .id6
+.id5:
+    jmp .id2
+.id6:
     ldbp 8
     push 48 ; dec = 48
     add
@@ -422,36 +422,36 @@ test_while_6:
     call int_to_byte
     call send_byte
     drop
-    jmp test_while_7
-test_while_7:
+    jmp .id7
+.id7:
     ldbp 8
     push 1 ; dec = 1
     sub
     push 65535  ; mask for int
     band        ; apply type mask
     stbp 8
-    jmp test_while_5
-test_while_out:
+    jmp .id5
+.out:
     ret
 
 test_break:
-test_break_0:
-    jmp test_break_2
-test_break_1:
-    jmp test_break_out
-test_break_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     ldbp 8
     push 0 ; dec = 0
     ne
-    jnz test_break_4
-    jmp test_break_3
-test_break_3:
-    jmp test_break_1
-test_break_4:
-    jmp test_break_6
-test_break_5:
-    jmp test_break_2
-test_break_6:
+    jnz .id4
+    jmp .id3
+.id3:
+    jmp .id1
+.id4:
+    jmp .id6
+.id5:
+    jmp .id2
+.id6:
     ldbp 8
     push 48 ; dec = 48
     add
@@ -460,44 +460,44 @@ test_break_6:
     call int_to_byte
     call send_byte
     drop
-    jmp test_break_7
-test_break_7:
+    jmp .id7
+.id7:
     ldbp 8
     push 1 ; dec = 1
     sub
     push 65535  ; mask for int
     band        ; apply type mask
     stbp 8
-    jmp test_break_8
-test_break_8:
+    jmp .id8
+.id8:
     ldbp 8
     push 3 ; dec = 3
     eq
-    jnz test_break_9
-    jmp test_break_10
-test_break_9:
-    jmp test_break_3
-test_break_10:
-    jmp test_break_5
-test_break_out:
+    jnz .id9
+    jmp .id10
+.id9:
+    jmp .id3
+.id10:
+    jmp .id5
+.out:
     ret
 
 test_many_operands:
-test_many_operands_0:
-    jmp test_many_operands_2
-test_many_operands_1:
-    jmp test_many_operands_out
-test_many_operands_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     ldbp 16
     call send_byte
     drop
-    jmp test_many_operands_3
-test_many_operands_3:
+    jmp .id3
+.id3:
     ldbp 12
     call send_byte
     drop
-    jmp test_many_operands_4
-test_many_operands_4:
+    jmp .id4
+.id4:
     push 48 ; dec = 48
     ldbp 8
     call bool_to_byte
@@ -506,24 +506,24 @@ test_many_operands_4:
     band        ; apply type mask
     call send_byte
     drop
-    jmp test_many_operands_1
-test_many_operands_out:
+    jmp .id1
+.out:
     ret
 
 test_mas:
     push 0    ; b
     push 0    ; c
     push 0    ; d
-test_mas_0:
-    jmp test_mas_2
-test_mas_1:
-    jmp test_mas_out
-test_mas_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     ldbp 8
     call int
     stbp -4
-    jmp test_mas_3
-test_mas_3:
+    jmp .id3
+.id3:
     ldbp -4
     push 0 ; dec = 0
     push 1
@@ -531,8 +531,8 @@ test_mas_3:
     add
     push 50 ; dec = 50
     store2
-    jmp test_mas_4
-test_mas_4:
+    jmp .id4
+.id4:
     ldbp -4
     push 2 ; dec = 2
     push 1
@@ -540,8 +540,8 @@ test_mas_4:
     add
     push 51 ; dec = 51
     store2
-    jmp test_mas_5
-test_mas_5:
+    jmp .id5
+.id5:
     ldbp -4
     push 0 ; dec = 0
     push 1
@@ -551,8 +551,8 @@ test_mas_5:
     call int_to_byte
     call send_byte
     drop
-    jmp test_mas_6
-test_mas_6:
+    jmp .id6
+.id6:
     ldbp -4
     push 2 ; dec = 2
     push 1
@@ -562,13 +562,13 @@ test_mas_6:
     call int_to_byte
     call send_byte
     drop
-    jmp test_mas_7
-test_mas_7:
+    jmp .id7
+.id7:
     ldbp 8
     call int
     stbp -8
-    jmp test_mas_8
-test_mas_8:
+    jmp .id8
+.id8:
     ldbp -8
     push 0 ; dec = 0
     push 1
@@ -576,8 +576,8 @@ test_mas_8:
     add
     push 52 ; dec = 52
     store2
-    jmp test_mas_9
-test_mas_9:
+    jmp .id9
+.id9:
     ldbp -8
     push 9 ; dec = 9
     push 1
@@ -585,8 +585,8 @@ test_mas_9:
     add
     push 53 ; dec = 53
     store2
-    jmp test_mas_10
-test_mas_10:
+    jmp .id10
+.id10:
     ldbp -8
     push 0 ; dec = 0
     push 1
@@ -596,8 +596,8 @@ test_mas_10:
     call int_to_byte
     call send_byte
     drop
-    jmp test_mas_11
-test_mas_11:
+    jmp .id11
+.id11:
     ldbp -8
     push 9 ; dec = 9
     push 1
@@ -607,13 +607,13 @@ test_mas_11:
     call int_to_byte
     call send_byte
     drop
-    jmp test_mas_12
-test_mas_12:
+    jmp .id12
+.id12:
     ldbp 8
     call int
     stbp -12
-    jmp test_mas_13
-test_mas_13:
+    jmp .id13
+.id13:
     ldbp -12
     push 0 ; dec = 0
     push 1
@@ -621,8 +621,8 @@ test_mas_13:
     add
     push 12337 ; hex = 0x3031
     store2
-    jmp test_mas_14
-test_mas_14:
+    jmp .id14
+.id14:
     ldbp -12
     push 1 ; dec = 1
     push 1
@@ -630,8 +630,8 @@ test_mas_14:
     add
     push 13106 ; hex = 0x3332
     store2
-    jmp test_mas_15
-test_mas_15:
+    jmp .id15
+.id15:
     ldbp -12
     push 0 ; dec = 0
     push 1
@@ -641,8 +641,8 @@ test_mas_15:
     call int_to_byte
     call send_byte
     drop
-    jmp test_mas_16
-test_mas_16:
+    jmp .id16
+.id16:
     ldbp -12
     push 0 ; dec = 0
     push 1
@@ -656,8 +656,8 @@ test_mas_16:
     call int_to_byte
     call send_byte
     drop
-    jmp test_mas_17
-test_mas_17:
+    jmp .id17
+.id17:
     ldbp -12
     push 1 ; dec = 1
     push 1
@@ -667,8 +667,8 @@ test_mas_17:
     call int_to_byte
     call send_byte
     drop
-    jmp test_mas_18
-test_mas_18:
+    jmp .id18
+.id18:
     ldbp -12
     push 1 ; dec = 1
     push 1
@@ -682,110 +682,241 @@ test_mas_18:
     call int_to_byte
     call send_byte
     drop
-    jmp test_mas_1
-test_mas_out:
+    jmp .id1
+.out:
+    ret
+
+test_return:
+    push 0    ; test_return
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
+    push 48 ; dec = 48
+    stbp -4
+    jmp .id1
+.out:
+    ldbp -4  ; load return value from test_return
+    stbp 8  ; store return value at bp + 8
+    ret
+
+test_return_2:
+    push 0    ; test_return_2
+.id0:
+    jmp .id1
+.id1:
+    jmp .out
+.out:
+    ldbp -4  ; load return value from test_return_2
+    stbp 8  ; store return value at bp + 8
+    ret
+
+calculate_complex:
+    push 0    ; temp1
+    push 0    ; temp2
+    push 0    ; result
+    push 0    ; calculate_complex
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
+    ldbp 16
+    ldbp 12
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    stbp -4
+    jmp .id3
+.id3:
+    ldbp 12
+    ldbp 8
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    stbp -8
+    jmp .id4
+.id4:
+    ldbp -4
+    ldbp -8
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    ldbp 12
+    sub
+    push 65535  ; mask for int
+    band        ; apply type mask
+    stbp -12
+    jmp .id5
+.id5:
+    ldbp -12
+    stbp -16
+    jmp .id1
+.out:
+    ldbp -16  ; load return value from calculate_complex
+    stbp 8  ; store return value at bp + 8
+    ret
+
+test_calculate_complex:
+    push 0    ; res1
+    push 0    ; res2
+    push 0    ; final_result
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
+    push 5 ; dec = 5
+    push 10 ; dec = 10
+    push 15 ; dec = 15
+    call calculate_complex
+    swap
+    drop
+    swap
+    drop
+    stbp -4
+    jmp .id3
+.id3:
+    push 3 ; dec = 3
+    push 7 ; dec = 7
+    push 11 ; dec = 11
+    call calculate_complex
+    swap
+    drop
+    swap
+    drop
+    stbp -8
+    jmp .id4
+.id4:
+    ldbp -4
+    ldbp -8
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    stbp -12
+    jmp .id5
+.id5:
+    ldbp -4
+    call int_to_byte
+    call send_byte
+    drop
+    jmp .id6
+.id6:
+    ldbp -8
+    call int_to_byte
+    call send_byte
+    drop
+    jmp .id7
+.id7:
+    ldbp -12
+    call int_to_byte
+    call send_byte
+    drop
+    jmp .id1
+.out:
     ret
 
 main:
-main_0:
-    jmp main_2
-main_1:
-    jmp main_out
-main_2:
+.id0:
+    jmp .id2
+.id1:
+    jmp .out
+.id2:
     call test_send_one_byte
-    jmp main_3
-main_3:
+    jmp .id3
+.id3:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_4
-main_4:
+    jmp .id4
+.id4:
     call test_builtin_func
-    jmp main_5
-main_5:
+    jmp .id5
+.id5:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_6
-main_6:
+    jmp .id6
+.id6:
     call test_math
-    jmp main_7
-main_7:
+    jmp .id7
+.id7:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_8
-main_8:
+    jmp .id8
+.id8:
     push 5 ; dec = 5
     call test_if
     drop
-    jmp main_9
-main_9:
+    jmp .id9
+.id9:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_10
-main_10:
+    jmp .id10
+.id10:
     push 3 ; dec = 3
     call test_if
     drop
-    jmp main_11
-main_11:
+    jmp .id11
+.id11:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_12
-main_12:
+    jmp .id12
+.id12:
     push 4 ; dec = 4
     call test_if
     drop
-    jmp main_13
-main_13:
+    jmp .id13
+.id13:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_14
-main_14:
+    jmp .id14
+.id14:
     push 0 ; dec = 0
     call test_req
     drop
-    jmp main_15
-main_15:
+    jmp .id15
+.id15:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_16
-main_16:
+    jmp .id16
+.id16:
     push 5 ; dec = 5
     call test_req
     drop
-    jmp main_17
-main_17:
+    jmp .id17
+.id17:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_18
-main_18:
+    jmp .id18
+.id18:
     push 9 ; dec = 9
     call test_while
     drop
-    jmp main_19
-main_19:
+    jmp .id19
+.id19:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_20
-main_20:
+    jmp .id20
+.id20:
     push 9 ; dec = 9
     call test_break
     drop
-    jmp main_21
-main_21:
+    jmp .id21
+.id21:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_22
-main_22:
+    jmp .id22
+.id22:
     push 50 ; dec = 50
     push 49 ; dec = 49
     push 1 ; bool = true
@@ -793,16 +924,52 @@ main_22:
     drop
     drop
     drop
-    jmp main_23
-main_23:
+    jmp .id23
+.id23:
     push 10 ; hex = 0x0A
     call send_byte
     drop
-    jmp main_24
-main_24:
+    jmp .id24
+.id24:
     push 10 ; dec = 10
     call test_mas
     drop
-    jmp main_1
-main_out:
+    jmp .id25
+.id25:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp .id26
+.id26:
+    push 0  ; for return value
+    call test_return
+    call int_to_byte
+    call send_byte
+    drop
+    jmp .id27
+.id27:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp .id28
+.id28:
+    call test_calculate_complex
+    jmp .id29
+.id29:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp .id30
+.id30:
+    push 0  ; for return value
+    call test_return_2
+    call int_to_byte
+    push 48 ; dec = 48
+    add
+    push 255  ; mask for byte
+    band        ; apply type mask
+    call send_byte
+    drop
+    jmp .id1
+.out:
     ret

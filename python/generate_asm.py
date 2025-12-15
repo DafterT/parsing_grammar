@@ -57,10 +57,10 @@ def generate_builtin_func(out_file):
     generate_long_to_ulong(out_file)
     generate_ulong_to_long(out_file)
 
-def process_store(tree, params_dict, f, vars_dict, var):
+def process_store(tree, params_dict, f, vars_dict, var, funcs_returns=None):
     assert len(tree.children) == 1
     
-    process_ast(tree.children[0], params_dict, f, vars_dict)
+    process_ast(tree.children[0], params_dict, f, vars_dict, funcs_returns)
     
     if var in vars_dict:
         f.write(f'    stbp {vars_dict[var][1]}\n')
@@ -90,10 +90,10 @@ BINOP_TO_CMD = {
     "<=": "le",
 }
 
-def process_bin_op(tree, params_dict, f, vars_dict, bin_op_type):
+def process_bin_op(tree, params_dict, f, vars_dict, bin_op_type, funcs_returns=None):
     assert len(tree.children) == 2
-    process_ast(tree.children[0], params_dict, f, vars_dict)
-    process_ast(tree.children[1], params_dict, f, vars_dict)
+    process_ast(tree.children[0], params_dict, f, vars_dict, funcs_returns)
+    process_ast(tree.children[1], params_dict, f, vars_dict, funcs_returns)
     asm_command = BINOP_TO_CMD.get(bin_op_type, None)
     if asm_command is None:
         raise ValueError(f"Не обработанная бинарная инструкция {bin_op_type}")
@@ -111,9 +111,9 @@ UNOP_TO_CMD = {
     "~": "bnot_u",
 }
 
-def process_un_op(tree, params_dict, f, vars_dict, un_op_type):
+def process_un_op(tree, params_dict, f, vars_dict, un_op_type, funcs_returns=None):
     assert len(tree.children) == 1
-    process_ast(tree.children[0], params_dict, f, vars_dict)
+    process_ast(tree.children[0], params_dict, f, vars_dict, funcs_returns)
     asm_command = UNOP_TO_CMD.get(un_op_type, None)
     if asm_command is None:
         raise ValueError(f"Не обработанная унарная инструкция {un_op_type}")
@@ -171,10 +171,10 @@ def apply_type_mask(f, type_str):
         f.write(f'    push {mask}  ; mask for {type_str}\n')
         f.write(f'    band        ; apply type mask\n')
 
-def process_index_op(tree, params_dict, f, vars_dict):
+def process_index_op(tree, params_dict, f, vars_dict, funcs_returns=None):
     assert len(tree.children) == 2
-    process_ast(tree.children[0], params_dict, f, vars_dict)
-    process_ast(tree.children[1], params_dict, f, vars_dict)
+    process_ast(tree.children[0], params_dict, f, vars_dict, funcs_returns)
+    process_ast(tree.children[1], params_dict, f, vars_dict, funcs_returns)
     shift = TYPE_TO_SHIFT.get(tree.type)
     if shift != 0:
         f.write(f'    push {shift}\n')
@@ -192,7 +192,7 @@ def process_load_op(tree, params_dict, f, vars_dict, var_name):
     else:
         raise ValueError(f"Не нашел переменную {var_name}")
 
-def process_store_at_op(tree, params_dict, f, vars_dict, var_name):
+def process_store_at_op(tree, params_dict, f, vars_dict, var_name, funcs_returns=None):
     assert len(tree.children) == 2
     if var_name in vars_dict:
         var = vars_dict[var_name]
@@ -202,21 +202,29 @@ def process_store_at_op(tree, params_dict, f, vars_dict, var_name):
         raise ValueError(f"Не нашел переменную {var_name}")
     
     f.write(f'    ldbp {var[1]}\n')
-    process_ast(tree.children[0], params_dict, f, vars_dict)
+    process_ast(tree.children[0], params_dict, f, vars_dict, funcs_returns)
     shift = TYPE_TO_SHIFT.get(var[0].split(' ')[-1])
     if shift != 0:
         f.write(f'    push {shift}\n')
         f.write(f'    shl\n')
     f.write(f'    add\n')
-    process_ast(tree.children[1], params_dict, f, vars_dict)
+    process_ast(tree.children[1], params_dict, f, vars_dict, funcs_returns)
     load = LOAD_TYPE.get(tree.type)
     f.write(f'    store{load}\n')
 
-def process_call_op(tree, params_dict, f, vars_dict, func_name):
-    has_return = BUILTIN_RETURNS.get(func_name, False)
+def process_call_op(tree, params_dict, f, vars_dict, func_name, funcs_returns=None):
+    # Проверяем, возвращает ли функция значение
+    has_return = False
+    if funcs_returns:
+        func_type = funcs_returns.get(func_name)
+        if func_type and func_type[0] is not None:
+            has_return = True
+    else:
+        # Fallback на встроенные функции
+        has_return = BUILTIN_RETURNS.get(func_name, False)
     
     for tree_child in tree.children:
-        process_ast(tree_child, params_dict, f, vars_dict)
+        process_ast(tree_child, params_dict, f, vars_dict, funcs_returns)
     
     if len(tree.children) == 0 and has_return:
         f.write(f'    push 0  ; for return value\n')
@@ -269,28 +277,28 @@ STORE_AT_RE = re.compile(r'^store_at\(([A-Za-z_][A-Za-z_0-9]*)\)$')
 CALL_RE = re.compile(r'^call\(([A-Za-z_][A-Za-z_0-9]*)\)$')
 CONST_RE = re.compile(r'^const\((.*)\((.*)\)\)$')
 
-def process_ast(tree, params_dict, f, vars_dict):
+def process_ast(tree, params_dict, f, vars_dict, funcs_returns=None):
     if tree is None:
         return
     
     store_match = STORE_RE.match(tree.label)
     if store_match:
-        process_store(tree, params_dict, f, vars_dict, store_match.group(1))
+        process_store(tree, params_dict, f, vars_dict, store_match.group(1), funcs_returns)
         return
     
     bin_op_match = BIN_OP_RE.match(tree.label)
     if bin_op_match:
-        process_bin_op(tree, params_dict, f, vars_dict, bin_op_match.group(1))
+        process_bin_op(tree, params_dict, f, vars_dict, bin_op_match.group(1), funcs_returns)
         return
     
     un_op_match = UN_OP_RE.match(tree.label)
     if un_op_match:
-        process_un_op(tree, params_dict, f, vars_dict, un_op_match.group(1))
+        process_un_op(tree, params_dict, f, vars_dict, un_op_match.group(1), funcs_returns)
         return
     
     index_match = INDEX_RE.match(tree.label)
     if index_match:
-        process_index_op(tree, params_dict, f, vars_dict)
+        process_index_op(tree, params_dict, f, vars_dict, funcs_returns)
         return
 
     load_match = LOAD_RE.match(tree.label)
@@ -300,12 +308,12 @@ def process_ast(tree, params_dict, f, vars_dict):
     
     store_at_match = STORE_AT_RE.match(tree.label)
     if store_at_match:
-        process_store_at_op(tree, params_dict, f, vars_dict, store_at_match.group(1))
+        process_store_at_op(tree, params_dict, f, vars_dict, store_at_match.group(1), funcs_returns)
         return
 
     call_match = CALL_RE.match(tree.label)
     if call_match:
-        process_call_op(tree, params_dict, f, vars_dict, call_match.group(1))
+        process_call_op(tree, params_dict, f, vars_dict, call_match.group(1), funcs_returns)
         return
     
     const_match = CONST_RE.match(tree.label)
@@ -315,28 +323,28 @@ def process_ast(tree, params_dict, f, vars_dict):
     
     raise ValueError(f"Неизвестный элемент {tree.label}")
 
-def process_block(f_name, block, params_dict, f, vars_dict):
-    f.write(f'{f_name}_{block.id}:\n')
+def process_block(f_name, block, params_dict, f, vars_dict, funcs_returns=None):
+    f.write(f'.id{block.id}:\n')
     
-    process_ast(block.tree, params_dict, f, vars_dict)
+    process_ast(block.tree, params_dict, f, vars_dict, funcs_returns)
     
     if len(block.succs) == 0:
-        f.write(f'    jmp {f_name}_out\n')
+        f.write(f'    jmp .out\n')
     elif len(block.succs) == 1:
         succ_id, _ = block.succs[0]
-        f.write(f'    jmp {f_name}_{succ_id}\n')
+        f.write(f'    jmp .id{succ_id}\n')
     else:
         # Два перехода: True и False
         true_succ = next(succ_id for succ_id, label in block.succs if label.lower() == "true")
         false_succ = next(succ_id for succ_id, label in block.succs if label.lower() == "false")
-        f.write(f'    jnz {f_name}_{true_succ}\n')
-        f.write(f'    jmp {f_name}_{false_succ}\n')
+        f.write(f'    jnz .id{true_succ}\n')
+        f.write(f'    jmp .id{false_succ}\n')
 
-def process_cfg(f_name, f_cfg, f_tree, params_dict, out_file, vars_dict):
+def process_cfg(f_name, f_cfg, f_tree, params_dict, out_file, vars_dict, funcs_returns=None):
     for _, block in f_cfg.blocks.items():
-        process_block(f_name, block, params_dict, out_file, vars_dict)
+        process_block(f_name, block, params_dict, out_file, vars_dict, funcs_returns)
 
-def process_func(f_name, f_cfg, f_tree, f_params, out_file, vars):
+def process_func(f_name, f_cfg, f_tree, f_params, out_file, vars, funcs_returns=None):
     # Преобразуем vars из списка кортежей в словарь с смещениями
     vars_dict = {}
     for index, (var_name, var_type) in enumerate(vars):
@@ -349,17 +357,31 @@ def process_func(f_name, f_cfg, f_tree, f_params, out_file, vars):
         offset = 4 * (len(f_params) - index + 1)
         params_dict[param_name] = (param_type, offset)
     
+    # Проверяем, возвращает ли функция значение
+    has_return = False
+    if funcs_returns:
+        func_type = funcs_returns.get(f_name)
+        if func_type and func_type[0] is not None:
+            has_return = True
+    
     with open(out_file, 'a', encoding='utf-8') as f:
         f.write(f'\n{f_name}:\n')
         
         for var_name, var_type in vars:
             f.write(f'    push 0    ; {var_name}\n')
         
-        process_cfg(f_name, f_cfg, f_tree, params_dict, f, vars_dict)
-        f.write(f'{f_name}_out:\n')
+        process_cfg(f_name, f_cfg, f_tree, params_dict, f, vars_dict, funcs_returns)
+        f.write(f'.out:\n')
+        
+        # Если функция возвращает значение, перемещаем его из переменной с именем функции в bp + 8
+        if has_return and f_name in vars_dict:
+            var_offset = vars_dict[f_name][1]
+            f.write(f'    ldbp {var_offset}  ; load return value from {f_name}\n')
+            f.write(f'    stbp 8  ; store return value at bp + 8\n')
+        
         f.write('    ret\n')
 
-def generate_asm(typed_blocks, out_file):
+def generate_asm(typed_blocks, out_file, funcs_returns=None):
     # Записываем подготовительные инструкции
     generate_preparation(out_file)
     
@@ -374,4 +396,4 @@ def generate_asm(typed_blocks, out_file):
         # Пропускаем функции без CFG
         if cfg is None:
             continue
-        process_func(f_name, cfg, tree, params, out_file, vars)
+        process_func(f_name, cfg, tree, params, out_file, vars, funcs_returns)

@@ -26,18 +26,19 @@ def render_typed_graphs(typed_data, out_dir_path: Path):
     render_all_typed_cfgs(typed_data, str(typed_graph_dir), fmt="svg")
 
 
-def handle_type_check(result, out_dir_path: Path) -> bool:
+def handle_type_check(result, out_dir_path: Path) -> tuple[bool, dict, dict]:
     # process_type возвращает typed_data - та же структура, но с типами в node.type
-    typed_data, errors = process_type(result)
+    # и funcs_returns - информацию о возвращаемых типах функций
+    typed_data, errors, funcs_returns = process_type(result)
 
     if errors:
         write_type_errors(errors, out_dir_path)
-        return True  # Ошибки найдены, останавливаем трансляцию
+        return True, None, None  # Ошибки найдены, останавливаем трансляцию
 
     if typed_data:
         render_typed_graphs(typed_data, out_dir_path)
     
-    return False  # Ошибок нет, продолжаем трансляцию
+    return False, typed_data, funcs_returns  # Ошибок нет, продолжаем трансляцию
 
 
 def main():
@@ -56,16 +57,23 @@ def main():
         return
 
     # Проверка типов: если есть ошибки, останавливаем трансляцию
-    if handle_type_check(result, out_dir_path):
+    has_errors, typed_data, funcs_returns = handle_type_check(result, out_dir_path)
+    if has_errors:
         return
     
     # Проверка наличия функции main без аргументов и без возвращаемого значения
     if not check_main_function(result, errors_report_path):
         return
     
+    # Проверяем, что typed_data не None перед использованием
+    if typed_data is None:
+        print("Ошибка: typed_data равен None")
+        return
+    
     asm_file = out_dir_path / "result.asm"
     
-    generate_asm(result, str(asm_file))
+    # Передаем typed_data (с обновленными vars) и funcs_returns в generate_asm
+    generate_asm(typed_data, str(asm_file), funcs_returns)
     print(f"Ассемблерный код сохранен в {asm_file}")
 
     return
