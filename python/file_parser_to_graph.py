@@ -459,6 +459,7 @@ def write_errors_report(result, filename: str) -> bool:
     with path.open("w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     
+    print(f"Ошибки записаны в {path}")
     return True
 
 

@@ -426,6 +426,7 @@ def check_main_function(result, errors_report_path) -> bool:
         with open(errors_report_path, "a", encoding="utf-8") as f:
             f.write("\n=== MAIN FUNCTION ERROR ===\n")
             f.write("Функция main без аргументов и без возвращаемого значения не найдена\n")
+        print(f"Ошибка: функция main не найдена. Детали в {errors_report_path}")
         return False
     
     func_name, tree = main_func

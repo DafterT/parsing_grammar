@@ -24,7 +24,6 @@ def write_type_errors(errors, out_dir_path: Path):
 def render_typed_graphs(typed_data, out_dir_path: Path):
     typed_graph_dir = out_dir_path / "typed_graph"
     render_all_typed_cfgs(typed_data, str(typed_graph_dir), fmt="svg")
-    print(f"Типизированные графы сохранены в {typed_graph_dir}")
 
 
 def handle_type_check(result, out_dir_path: Path) -> bool:
