@@ -73,7 +73,8 @@ BUILTIN_FUNCTIONS = {
     'byte_to_int', 'int_to_byte',
     'int_to_uint', 'uint_to_int',
     'int_to_long', 'long_to_int',
-    'long_to_ulong', 'ulong_to_long'
+    'long_to_ulong', 'ulong_to_long',
+    'alloc'
 }
 
 
