@@ -1,0 +1,17 @@
+method test_if(a: int) begin
+    if a = 3 then
+        send_byte(51);
+    else 
+        if a = 4 then
+            send_byte(52);
+        else
+            send_byte(48);
+end;
+
+method main()
+begin
+    test_if(3);
+    test_if(4);
+    test_if(2);
+    test_if(5);
+end;

@@ -1,0 +1,25 @@
+method test_while(a: int) 
+var a_temp: int;
+begin
+    a_temp:=a;
+    repeat begin
+        send_byte(int_to_byte((a_temp) + 48));
+        a_temp := a_temp - 1;
+    end; while a_temp > 0;
+    send_byte(0x0A);
+    repeat begin
+        send_byte(int_to_byte((a) + 48));
+        a := a - 1;
+    end; until a < 0;
+end;
+
+method main()
+begin
+    test_while(3);
+    send_byte(0x0A);
+    test_while(4);
+    send_byte(0x0A);
+    test_while(2);
+    send_byte(0x0A);
+    test_while(0);
+end;

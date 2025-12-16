@@ -1,0 +1,17 @@
+method test_if(a: int): byte begin
+    if a = 3 then
+        test_if := 51;
+    else 
+        if a = 4 then
+            test_if := 52;
+        else
+            test_if := 48;
+end;
+
+method main()
+begin
+    send_byte(test_if(3));
+    send_byte(test_if(4));
+    send_byte(test_if(2));
+    send_byte(test_if(5));
+end;

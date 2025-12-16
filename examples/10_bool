@@ -1,0 +1,24 @@
+method test_bool_ops()
+var a: bool; b: bool; c: bool; result: bool;
+begin
+    a := true;
+    b := false;
+    c := true;
+    result := !a;
+    send_byte(bool_to_byte(result) + 48);
+    result := a && b;
+    send_byte(bool_to_byte(result) + 48);
+    result := a || b;
+    send_byte(bool_to_byte(result) + 48);
+    result := (a && b) || c;
+    send_byte(bool_to_byte(result) + 48);
+    result := !(a && b);
+    send_byte(bool_to_byte(result) + 48);
+    result := a || (!b);
+    send_byte(bool_to_byte(result) + 48);
+end;
+
+method main()
+begin
+    test_bool_ops();
+end;

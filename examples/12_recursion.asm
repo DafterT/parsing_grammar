@@ -120,31 +120,36 @@ long_to_ulong:   ; Builtin function: long_to_ulong(l: long) -> ulong
 ulong_to_long:   ; Builtin function: ulong_to_long(u: ulong) -> long
     ret          ; value already at [bp+8], no conversion needed
 
-helper_value:
-    push 0    ; helper_value
+factorial:
+    push 0    ; factorial
 .id0:
     jmp .id2
 .id1:
     jmp .out
 .id2:
-    push 20 ; dec = 20
+    ldbp 8
+    push 1 ; dec = 1
+    le
+    jnz .id3
+    jmp .id5
+.id3:
+    push 1 ; dec = 1
     stbp -4
+    jmp .id4
+.id4:
     jmp .id1
-.out:
-    ldbp -4  ; load return value from helper_value
-    stbp 8  ; store return value at bp + 8
-    ret
-
-all_operations_demo:
-    push 0    ; all_operations_demo
-.id0:
-    jmp .id2
-.id1:
-    jmp .out
-.id2:
-    push 0  ; for return value
-    call helper_value
-    push 2 ; dec = 2
+.id5:
+    ldbp 8
+    ldbp 8
+    push 1 ; dec = 1
+    sub
+    push 65535  ; mask for int
+    band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
+    call factorial
     mul
     push 65535  ; mask for int
     band        ; apply type mask
@@ -152,228 +157,10 @@ all_operations_demo:
     bxor         ; flip sign bit
     push 0x8000  ; prepare for subtraction
     sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 2 ; dec = 2
-    div
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    add
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 10 ; dec = 10
-    mod
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 10 ; dec = 10
-    mod
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    sub
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    add
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 1 ; dec = 1
-    shl
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 1 ; dec = 1
-    shl
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    sub
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    add
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 1 ; dec = 1
-    shr
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 1 ; dec = 1
-    shr
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    sub
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    add
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 0 ; dec = 0
-    bor
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 15 ; dec = 15
-    band
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 15 ; dec = 15
-    band
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    sub
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    add
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0  ; for return value
-    call helper_value
-    push 0  ; for return value
-    call helper_value
-    bxor
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 1 ; dec = 1
-    bor
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 0 ; dec = 0
-    bnot_u
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 1 ; dec = 1
-    band
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    add
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    push 2 ; dec = 2
-    add
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
-    add
-    push 65535  ; mask for int
-    band        ; apply type mask
-    push 0x8000  ; sign bit mask for int
-    bxor         ; flip sign bit
-    push 0x8000  ; prepare for subtraction
-    sub           ; sign extend 16->32
     stbp -4
-    jmp .id1
+    jmp .id4
 .out:
-    ldbp -4  ; load return value from all_operations_demo
+    ldbp -4  ; load return value from factorial
     stbp 8  ; store return value at bp + 8
     ret
 
@@ -383,8 +170,56 @@ main:
 .id1:
     jmp .out
 .id2:
-    push 0  ; for return value
-    call all_operations_demo
+    push 1 ; dec = 1
+    call factorial
+    push 48 ; dec = 48
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
+    call int_to_byte
+    call send_byte
+    drop
+    jmp .id3
+.id3:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp .id4
+.id4:
+    push 2 ; dec = 2
+    call factorial
+    push 48 ; dec = 48
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
+    call int_to_byte
+    call send_byte
+    drop
+    jmp .id5
+.id5:
+    push 10 ; hex = 0x0A
+    call send_byte
+    drop
+    jmp .id6
+.id6:
+    push 3 ; dec = 3
+    call factorial
+    push 48 ; dec = 48
+    add
+    push 65535  ; mask for int
+    band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop

@@ -1,0 +1,17 @@
+method test_while(a: int) begin
+    while a != 0 do begin
+        send_byte(int_to_byte(a + 48));
+        a := a - 1;
+    end;
+end;
+
+method main()
+begin
+    test_while(3);
+    send_byte(0x0A);
+    test_while(4);
+    send_byte(0x0A);
+    test_while(2);
+    send_byte(0x0A);
+    test_while(0);
+end;

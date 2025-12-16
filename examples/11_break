@@ -1,0 +1,21 @@
+method test_break(n: int) 
+    var i: int;
+begin
+    i := 0;
+    while i < 10 do begin
+        send_byte(int_to_byte(i + 48));
+        i := i + 1;
+        if i = n then
+            break;
+    end;
+end;
+
+method main()
+begin
+    test_break(3);
+    send_byte(0x0A);
+    test_break(5);
+    send_byte(0x0A);
+    test_break(10);
+end;
+

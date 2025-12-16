@@ -1,0 +1,16 @@
+method factorial(n: int): int begin
+    if n <= 1 then
+        factorial := 1;
+    else
+        factorial := n * factorial(n - 1);
+end;
+
+method main()
+begin
+    send_byte(int_to_byte(factorial(1) + 48));
+    send_byte(0x0A);
+    send_byte(int_to_byte(factorial(2) + 48));
+    send_byte(0x0A);
+    send_byte(int_to_byte(factorial(3) + 48));
+end;
+

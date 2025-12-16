@@ -1,0 +1,20 @@
+method helper_value(): int begin
+    helper_value := 20;
+end;
+
+method all_operations_demo(): int begin
+    all_operations_demo := (
+        (helper_value() * 2) +
+        (helper_value() / 2) +
+        ((helper_value() % 10) - (helper_value() % 10)) +
+        ((helper_value() << 1) - (helper_value() << 1)) +
+        ((helper_value() >> 1) - (helper_value() >> 1)) +
+        (((helper_value() | 0) & 15) - ((helper_value() & 15))) +
+        (((helper_value() ^ helper_value()) | 1) + (~0 & 1) + 2)
+    );
+end;
+
+method main()
+begin
+    send_byte(int_to_byte(all_operations_demo()));
+end;

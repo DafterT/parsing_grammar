@@ -1,0 +1,6 @@
+method main() 
+var readed_byte : byte;
+begin
+    readed_byte := read_byte();
+    send_byte(readed_byte);
+end;
