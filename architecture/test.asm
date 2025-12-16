@@ -151,6 +151,10 @@ test_builtin_func:
     sub
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     stbp -8
     jmp .id4
 .id4:
@@ -163,6 +167,10 @@ test_builtin_func:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -370,6 +378,10 @@ test_req:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -380,6 +392,10 @@ test_req:
     sub
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call test_req
     drop
     jmp .id9
@@ -389,6 +405,10 @@ test_req:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -419,6 +439,10 @@ test_while:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -429,6 +453,10 @@ test_while:
     sub
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     stbp 8
     jmp .id5
 .out:
@@ -457,6 +485,10 @@ test_break:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -467,6 +499,10 @@ test_break:
     sub
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     stbp 8
     jmp .id8
 .id8:
@@ -548,6 +584,10 @@ test_mas:
     shl
     add
     load2
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -559,6 +599,10 @@ test_mas:
     shl
     add
     load2
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -593,6 +637,10 @@ test_mas:
     shl
     add
     load2
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -604,6 +652,10 @@ test_mas:
     shl
     add
     load2
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -638,6 +690,10 @@ test_mas:
     shl
     add
     load2
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -649,10 +705,18 @@ test_mas:
     shl
     add
     load2
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     push 8 ; dec = 8
     shr
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -664,6 +728,10 @@ test_mas:
     shl
     add
     load2
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -675,10 +743,18 @@ test_mas:
     shl
     add
     load2
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     push 8 ; dec = 8
     shr
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     call int_to_byte
     call send_byte
     drop
@@ -727,6 +803,10 @@ calculate_complex:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     stbp -4
     jmp .id3
 .id3:
@@ -735,6 +815,10 @@ calculate_complex:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     stbp -8
     jmp .id4
 .id4:
@@ -743,10 +827,18 @@ calculate_complex:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     ldbp 12
     sub
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     stbp -12
     jmp .id5
 .id5:
@@ -794,6 +886,10 @@ test_calculate_complex:
     add
     push 65535  ; mask for int
     band        ; apply type mask
+    push 0x8000  ; sign bit mask for int
+    bxor         ; flip sign bit
+    push 0x8000  ; prepare for subtraction
+    sub           ; sign extend 16->32
     stbp -12
     jmp .id5
 .id5:

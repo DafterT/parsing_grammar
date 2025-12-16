@@ -167,9 +167,16 @@ def get_type_mask(type_str):
 def apply_type_mask(f, type_str):
     """Применяет маску к результату на стеке, если это необходимо."""
     mask = get_type_mask(type_str)
-    if mask is not None :
+    if mask is not None:
         f.write(f'    push {mask}  ; mask for {type_str}\n')
         f.write(f'    band        ; apply type mask\n')
+        # Для знаковых типов расширяем знак
+        if type_str and type_str.strip().lower() == 'int':
+            # Sign-extension для 16-битного int: (x ^ 0x8000) - 0x8000
+            f.write(f'    push 0x8000  ; sign bit mask for int\n')
+            f.write(f'    bxor         ; flip sign bit\n')
+            f.write(f'    push 0x8000  ; prepare for subtraction\n')
+            f.write(f'    sub           ; sign extend 16->32\n')
 
 def process_index_op(tree, params_dict, f, vars_dict, funcs_returns=None):
     assert len(tree.children) == 2
@@ -182,6 +189,14 @@ def process_index_op(tree, params_dict, f, vars_dict, funcs_returns=None):
     f.write(f'    add\n')
     load = LOAD_TYPE.get(tree.type)
     f.write(f'    load{load}\n') # TODO check
+    # Для знаковых типов после загрузки из памяти нужно расширить знак
+    # (load1 и load2 делают zero-extension, но для int нужен sign-extension)
+    if tree.type and tree.type.strip().lower() == 'int' and load == '2':
+        # Sign-extension для 16-битного int: (x ^ 0x8000) - 0x8000
+        f.write(f'    push 0x8000  ; sign bit mask for int\n')
+        f.write(f'    bxor         ; flip sign bit\n')
+        f.write(f'    push 0x8000  ; prepare for subtraction\n')
+        f.write(f'    sub           ; sign extend 16->32\n')
 
 def process_load_op(tree, params_dict, f, vars_dict, var_name):
     assert len(tree.children) == 0

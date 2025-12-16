@@ -430,7 +430,15 @@ architecture stack16 {
 			t0 = dmem:4[sp];             // b
 			t1 = dmem:4[sp + 4];         // a
 			sp = sp + 4;
-			dmem:4[sp] = (t1 > t0);
+			// signed comparison: check signs first
+			t2 = (t1 & 0x80000000) > 0;  // a is negative?
+			if t2 != ((t0 & 0x80000000) > 0) then {
+				// different signs: positive > negative
+				dmem:4[sp] = (t2 == 0);   // a > b if a is positive (t2=0)
+			} else {
+				// same signs: use unsigned comparison
+				dmem:4[sp] = (t1 > t0);
+			}
 			ip = ip + 1;
 		};
 
@@ -439,7 +447,15 @@ architecture stack16 {
 			t0 = dmem:4[sp];             // b
 			t1 = dmem:4[sp + 4];         // a
 			sp = sp + 4;
-			dmem:4[sp] = (t1 < t0);
+			// signed comparison: check signs first
+			t2 = (t1 & 0x80000000) > 0;  // a is negative?
+			if t2 != ((t0 & 0x80000000) > 0) then {
+				// different signs: negative < positive
+				dmem:4[sp] = (t2 > 0);   // a < b if a is negative (t2=1 means a negative, so a < b)
+			} else {
+				// same signs: use unsigned comparison
+				dmem:4[sp] = (t1 < t0);
+			}
 			ip = ip + 1;
 		};
 
@@ -448,7 +464,15 @@ architecture stack16 {
 			t0 = dmem:4[sp];             // b
 			t1 = dmem:4[sp + 4];         // a
 			sp = sp + 4;
-			dmem:4[sp] = (t1 >= t0);
+			// signed comparison: check signs first
+			t2 = (t1 & 0x80000000) > 0;  // a is negative?
+			if t2 != ((t0 & 0x80000000) > 0) then {
+				// different signs: positive >= negative
+				dmem:4[sp] = (t2 == 0);   // a >= b if a is positive (t2=0)
+			} else {
+				// same signs: use unsigned comparison
+				dmem:4[sp] = (t1 >= t0);
+			}
 			ip = ip + 1;
 		};
 
@@ -457,7 +481,15 @@ architecture stack16 {
 			t0 = dmem:4[sp];             // b
 			t1 = dmem:4[sp + 4];         // a
 			sp = sp + 4;
-			dmem:4[sp] = (t1 <= t0);
+			// signed comparison: check signs first
+			t2 = (t1 & 0x80000000) > 0;  // a is negative?
+			if t2 != ((t0 & 0x80000000) > 0) then {
+				// different signs: negative <= positive
+				dmem:4[sp] = (t2 > 0);   // a <= b if a is negative (t2=1 means a negative, so a <= b)
+			} else {
+				// same signs: use unsigned comparison
+				dmem:4[sp] = (t1 <= t0);
+			}
 			ip = ip + 1;
 		};
 
