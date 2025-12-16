@@ -992,6 +992,26 @@ class TypeChecker:
         errors: List[TypeCheckError],
     ) -> Tuple[Optional[str], List[TypeCheckError]]:
         """Проверка арифметического оператора."""
+        if len(node.children) != 2:
+            errors.append(TypeCheckError(
+                message=f"Оператор '{op}' требует 2 операнда",
+                tree=node,
+                tree_str=tree_view_to_str(node)
+            ))
+            return None, errors
+
+        left_node, right_node = node.children
+
+        # Получаем исходные типы операндов до унификации
+        left_type_orig, left_errors = self.infer_type(left_node)
+        errors.extend(left_errors)
+        left_type_orig = normalize_type(left_type_orig)
+
+        right_type_orig, right_errors = self.infer_type(right_node)
+        errors.extend(right_errors)
+        right_type_orig = normalize_type(right_type_orig)
+
+        # Вызываем _check_binary_op для проверки и унификации
         left_type, right_type, errors = self._check_binary_op(
             node, op, errors, ARITHMETIC_TYPES, "числовой тип"
         )
@@ -999,7 +1019,18 @@ class TypeChecker:
         # _check_binary_op уже унифицировал типы
         # left_type и right_type теперь одинаковые (или None)
         result_type = left_type or right_type
-        # Разрешаем UNTYPED_INT в int
+        
+        # Если оба исходных операнда были UNTYPED_INT, результат должен остаться UNTYPED_INT
+        # чтобы он мог автоматически приводиться к типу другого операнда при использовании
+        if (is_untyped_int(left_type_orig) and is_untyped_int(right_type_orig) and
+            result_type == 'int'):
+            return UNTYPED_INT, errors
+        
+        # Разрешаем UNTYPED_INT в int только для отображения, но сохраняем UNTYPED_INT
+        # если он был изначально
+        if result_type == UNTYPED_INT:
+            return UNTYPED_INT, errors
+        
         return resolve_type(result_type), errors
     
     def _check_binary_bitwise(
