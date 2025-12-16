@@ -94,9 +94,39 @@ def process_bin_op(tree, params_dict, f, vars_dict, bin_op_type, funcs_returns=N
     assert len(tree.children) == 2
     process_ast(tree.children[0], params_dict, f, vars_dict, funcs_returns)
     process_ast(tree.children[1], params_dict, f, vars_dict, funcs_returns)
-    asm_command = BINOP_TO_CMD.get(bin_op_type, None)
-    if asm_command is None:
-        raise ValueError(f"Не обработанная бинарная инструкция {bin_op_type}")
+    
+    # Для операций сравнения выбираем знаковую или беззнаковую версию
+    comparison_ops = {'>', '<', '>=', '<='}
+    if bin_op_type in comparison_ops:
+        # Получаем тип операндов (они должны быть одинаковыми)
+        operand_type = None
+        if tree.children[0] and hasattr(tree.children[0], 'type') and tree.children[0].type:
+            operand_type = tree.children[0].type.strip().lower()
+        
+        # Определяем, знаковый или беззнаковый тип
+        signed_types = {'int', 'long'}
+        unsigned_types = {'uint', 'ulong', 'byte'}
+        
+        # Выбираем соответствующую инструкцию
+        base_command = BINOP_TO_CMD.get(bin_op_type, None)
+        if base_command is None:
+            raise ValueError(f"Не обработанная бинарная инструкция {bin_op_type}")
+        
+        if operand_type in unsigned_types:
+            # Используем беззнаковую версию
+            asm_command = base_command + '_u'
+        elif operand_type in signed_types:
+            # Используем знаковую версию
+            asm_command = base_command
+        else:
+            # По умолчанию используем знаковую версию (для совместимости)
+            asm_command = base_command
+    else:
+        # Для остальных операций используем стандартную команду
+        asm_command = BINOP_TO_CMD.get(bin_op_type, None)
+        if asm_command is None:
+            raise ValueError(f"Не обработанная бинарная инструкция {bin_op_type}")
+    
     f.write(f'    {asm_command}\n')
     
     # Применяем маску для арифметических и битовых операций над целочисленными типами

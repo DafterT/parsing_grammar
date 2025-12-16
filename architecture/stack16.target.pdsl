@@ -493,6 +493,44 @@ architecture stack16 {
 			ip = ip + 1;
 		};
 
+		// --- unsigned comparison operations (32-bit) ---
+
+		// greater than (unsigned): pop b, pop a, push (a > b ? 1 : 0)
+		instruction gt_u = { 0101 0001 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 > t0);      // unsigned comparison
+			ip = ip + 1;
+		};
+
+		// less than (unsigned): pop b, pop a, push (a < b ? 1 : 0)
+		instruction lt_u = { 0101 0010 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 < t0);      // unsigned comparison
+			ip = ip + 1;
+		};
+
+		// greater than or equal (unsigned): pop b, pop a, push (a >= b ? 1 : 0)
+		instruction ge_u = { 0101 0011 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 >= t0);     // unsigned comparison
+			ip = ip + 1;
+		};
+
+		// less than or equal (unsigned): pop b, pop a, push (a <= b ? 1 : 0)
+		instruction le_u = { 0101 0100 } {
+			t0 = dmem:4[sp];             // b
+			t1 = dmem:4[sp + 4];         // a
+			sp = sp + 4;
+			dmem:4[sp] = (t1 <= t0);     // unsigned comparison
+			ip = ip + 1;
+		};
+
 	mnemonics:
 		format plain1 is "{1}";
 		format plain0 is "";
@@ -550,5 +588,10 @@ architecture stack16 {
 		mnemonic lt() plain0;
 		mnemonic ge() plain0;
 		mnemonic le() plain0;
+
+		mnemonic gt_u() plain0;
+		mnemonic lt_u() plain0;
+		mnemonic ge_u() plain0;
+		mnemonic le_u() plain0;
 }
 
