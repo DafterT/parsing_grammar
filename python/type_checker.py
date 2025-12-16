@@ -366,6 +366,22 @@ class TypeChecker:
             return normalize_type(type_info[0])
         return None
     
+    def _check_void_value_usage(self, node: TreeViewNode, context: str) -> Optional[TypeCheckError]:
+        """
+        Проверяет, что узел не имеет тип None (void) и не используется как значение.
+        
+        context: описание контекста использования (для сообщения об ошибке).
+        """
+        node_type, _ = self.infer_type(node)
+        node_type = normalize_type(node_type)
+        if node_type is None:
+            return TypeCheckError(
+                message=f"Функция не возвращает значение и не может использоваться {context}",
+                tree=node,
+                tree_str=tree_view_to_str(node)
+            )
+        return None
+    
     def get_function_args(self, func_name: str) -> Dict[str, Tuple[Optional[str], object]]:
         """Получает словарь аргументов функции."""
         return self.funcs_calls.get(func_name, {})
@@ -422,6 +438,8 @@ class TypeChecker:
                 call_errors = self._check_call(node, func_name)
                 errors.extend(call_errors)
                 return_type = self.get_function_return_type(func_name)
+                # Примечание: возвращаем None для void функций, но проверка использования
+                # как значения будет выполнена в местах, где ожидается значение
                 return normalize_type(return_type), errors
             errors.append(TypeCheckError(
                 message=f"Не удалось распознать вызов функции: {label}",
@@ -452,6 +470,16 @@ class TypeChecker:
                 rhs_type, rhs_errors = self.infer_type(node.children[0])
                 errors.extend(rhs_errors)
                 rhs_type = normalize_type(rhs_type)
+
+                # Проверяем, что правая часть не является void функцией
+                if rhs_type is None:
+                    errors.append(TypeCheckError(
+                        message=f"Функция не возвращает значение и не может использоваться "
+                                f"в правой части присваивания переменной '{var_name}'",
+                        tree=node.children[0],
+                        tree_str=tree_view_to_str(node.children[0])
+                    ))
+                    return None, errors
 
                 # Проверяем совместимость типов
                 if rhs_type is not None:
@@ -522,6 +550,15 @@ class TypeChecker:
                     idx_type, idx_errors = self.infer_type(idx_node)
                     errors.extend(idx_errors)
                     idx_type = normalize_type(idx_type)
+                    
+                    # Проверяем, что индекс не является void функцией
+                    if idx_type is None:
+                        errors.append(TypeCheckError(
+                            message=f"Функция не возвращает значение и не может использоваться "
+                                    f"как индекс массива '{arr_name}'",
+                            tree=idx_node,
+                            tree_str=tree_view_to_str(idx_node)
+                        ))
 
                     if idx_type is not None and idx_type != 'int' and not is_untyped_int(idx_type):
                         errors.append(TypeCheckError(
@@ -534,6 +571,15 @@ class TypeChecker:
                 value_type, value_errors = self.infer_type(value_node)
                 errors.extend(value_errors)
                 value_type = normalize_type(value_type)
+                
+                # Проверяем, что значение не является void функцией
+                if value_type is None:
+                    errors.append(TypeCheckError(
+                        message=f"Функция не возвращает значение и не может использоваться "
+                                f"как значение для записи в массив '{arr_name}'",
+                        tree=value_node,
+                        tree_str=tree_view_to_str(value_node)
+                    ))
 
                 if value_type is not None and element_type is not None:
                     # UNTYPED_INT автоматически приводится к числовому типу элемента
@@ -564,6 +610,7 @@ class TypeChecker:
                 return None, errors
 
             base_node, index_node = node.children
+
             base_type, base_errors = self.infer_type(base_node)
             errors.extend(base_errors)
             base_type = normalize_type(base_type)
@@ -571,6 +618,14 @@ class TypeChecker:
             index_type, index_errors = self.infer_type(index_node)
             errors.extend(index_errors)
             index_type = normalize_type(index_type)
+
+            # Проверяем, что индекс не является void функцией
+            if index_type is None:
+                errors.append(TypeCheckError(
+                    message=f"Функция не возвращает значение и не может использоваться как индекс массива",
+                    tree=index_node,
+                    tree_str=tree_view_to_str(index_node)
+                ))
 
             # Индекс должен быть int (UNTYPED_INT автоматически приводится к int)
             if index_type is not None and index_type != 'int' and not is_untyped_int(index_type):
@@ -666,9 +721,19 @@ class TypeChecker:
             arg_name, (expected_type, _) = expected_arg_list[i]
             expected_type = normalize_type(expected_type)
 
+            # Получаем тип аргумента (один раз)
             actual_type, arg_errors = self.infer_type(actual_node)
             errors.extend(arg_errors)
             actual_type = normalize_type(actual_type)
+            
+            # Проверяем, что аргумент не является void функцией
+            if actual_type is None:
+                errors.append(TypeCheckError(
+                    message=f"Функция не возвращает значение и не может использоваться "
+                            f"как аргумент '{arg_name}' функции '{func_name}'",
+                    tree=actual_node,
+                    tree_str=tree_view_to_str(actual_node)
+                ))
 
             if actual_type is not None and expected_type is not None:
                 # UNTYPED_INT автоматически приводится к числовому типу аргумента
@@ -863,6 +928,23 @@ class TypeChecker:
         errors.extend(right_errors)
         right_type = normalize_type(right_type)
 
+        # Проверяем, что операнды не являются void функциями
+        if left_type is None:
+            errors.append(TypeCheckError(
+                message=f"Функция не возвращает значение и не может использоваться "
+                        f"как левый операнд оператора '{op}'",
+                tree=left_node,
+                tree_str=tree_view_to_str(left_node)
+            ))
+
+        if right_type is None:
+            errors.append(TypeCheckError(
+                message=f"Функция не возвращает значение и не может использоваться "
+                        f"как правый операнд оператора '{op}'",
+                tree=right_node,
+                tree_str=tree_view_to_str(right_node)
+            ))
+
         # Проверяем, что типы разрешены (учитываем UNTYPED_INT)
         if left_type is not None and left_type not in allowed_types:
             errors.append(TypeCheckError(
@@ -981,6 +1063,16 @@ class TypeChecker:
         operand_type, operand_errors = self.infer_type(node.children[0])
         errors.extend(operand_errors)
         
+        # Проверяем, что операнд не является void функцией
+        operand_type_normalized = normalize_type(operand_type)
+        if operand_type_normalized is None:
+            errors.append(TypeCheckError(
+                message=f"Функция не возвращает значение и не может использоваться "
+                        f"как операнд унарного оператора '{op}'",
+                tree=node.children[0],
+                tree_str=tree_view_to_str(node.children[0])
+            ))
+        
         if operand_type is not None and operand_type != 'bool':
             errors.append(TypeCheckError(
                 message=f"Оператор '{op}' применим только к типу 'bool', "
@@ -1009,6 +1101,15 @@ class TypeChecker:
         operand_type, operand_errors = self.infer_type(node.children[0])
         errors.extend(operand_errors)
         operand_type = normalize_type(operand_type)
+        
+        # Проверяем, что операнд не является void функцией
+        if operand_type is None:
+            errors.append(TypeCheckError(
+                message=f"Функция не возвращает значение и не может использоваться "
+                        f"как операнд унарного оператора '{op}'",
+                tree=node.children[0],
+                tree_str=tree_view_to_str(node.children[0])
+            ))
         
         if operand_type is not None and operand_type not in BITWISE_TYPES:
             errors.append(TypeCheckError(
