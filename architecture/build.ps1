@@ -23,7 +23,7 @@ param(
   [string]$AssembleService = "AssembleDebug",
   [string]$DefinitionFile  = "stack16.target.pdsl",
   [string]$ArchName        = "stack16",
-  [string]$AsmListing      = "t_sum.asm",
+  [string]$AsmListing      = "test.asm",
   [string]$SourcesDir      = "C:\Users\User\Downloads\parsing_grammar\architecture\",
 
   # Download result
