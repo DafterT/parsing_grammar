@@ -946,7 +946,12 @@ class TypeChecker:
             ))
 
         # Проверяем, что типы разрешены (учитываем UNTYPED_INT)
-        if left_type is not None and left_type not in allowed_types:
+        # Если хотя бы один тип не входит в allowed_types, не унифицируем и возвращаем None
+        # None не считается разрешённым типом (это ошибка, которая обрабатывается отдельно)
+        left_allowed = left_type is not None and left_type in allowed_types
+        right_allowed = right_type is not None and right_type in allowed_types
+        
+        if not left_allowed:
             errors.append(TypeCheckError(
                 message=f"Оператор '{op}' не применим к типу '{resolve_type(left_type)}' "
                         f"(ожидается {type_category})",
@@ -954,13 +959,17 @@ class TypeChecker:
                 tree_str=tree_view_to_str(left_node)
             ))
 
-        if right_type is not None and right_type not in allowed_types:
+        if not right_allowed:
             errors.append(TypeCheckError(
                 message=f"Оператор '{op}' не применим к типу '{resolve_type(right_type)}' "
                         f"(ожидается {type_category})",
                 tree=right_node,
                 tree_str=tree_view_to_str(right_node)
             ))
+
+        # Если хотя бы один тип не разрешён, не унифицируем и возвращаем None
+        if not left_allowed or not right_allowed:
+            return None, None, errors
 
         # Унифицируем типы (UNTYPED_INT автоматически приводится)
         if left_type is not None and right_type is not None:
@@ -1015,6 +1024,11 @@ class TypeChecker:
         left_type, right_type, errors = self._check_binary_op(
             node, op, errors, ARITHMETIC_TYPES, "числовой тип"
         )
+
+        # Если типы не удалось унифицировать (оба None), значит были ошибки
+        # Возвращаем None с ошибками
+        if left_type is None and right_type is None:
+            return None, errors
 
         # _check_binary_op уже унифицировал типы
         # left_type и right_type теперь одинаковые (или None)
