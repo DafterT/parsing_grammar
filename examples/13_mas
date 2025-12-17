@@ -1,0 +1,47 @@
+method test_arrays()
+var byte_arr: array[] of byte; 
+    int_arr: array[] of int; 
+    long_arr: array[] of long; 
+    i: int;
+begin
+    byte_arr := byte(3);
+    int_arr := int(3);
+    long_arr := long(3);
+
+    byte_arr[0] := 1;
+    byte_arr[1] := 2;
+    byte_arr[2] := 3;
+
+    int_arr[0] := 100;
+    int_arr[1] := 200;
+    int_arr[2] := 300;
+
+    long_arr[0] := 1000;
+    long_arr[1] := 2000;
+    long_arr[2] := 3000;
+
+    i := 0;
+    while i < 3 do begin
+        send_byte(byte_arr[i] + 48);
+        i := i + 1;
+    end;
+    send_byte(0x0A);
+
+    i := 0;
+    while i < 3 do begin
+        send_byte(int_to_byte((int_arr[i] / 100) + 48));
+        i := i + 1;
+    end;
+    send_byte(0x0A);
+
+    i := 0;
+    while i < 3 do begin
+        send_byte(int_to_byte((long_to_int(long_arr[i]) / 1000) + 48));
+        i := i + 1;
+    end;
+end;
+
+method main()
+begin
+    test_arrays();
+end;
